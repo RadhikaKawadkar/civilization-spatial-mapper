@@ -3,10 +3,10 @@ project(CivilizationSpatialMapper)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(app
+add_executable(spatial_mapper
     main.cpp
     core/kd_tree.cpp
-    core/r_tree.cpp
+    utils/logger.cpp
     data/csv_loader.cpp
-    analytics/performance.cpp
+    analytics/benchmark.cpp
 )

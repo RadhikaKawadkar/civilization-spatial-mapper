@@ -101,3 +101,10 @@ void nearestNeighbor(
     if (diff < bestDist)
         nearestNeighbor(farBranch, lat, lon, best, bestDist, depth + 1);
 }
+
+void deleteKDTree(KDNode* root) {
+    if (!root) return;
+    deleteKDTree(root->left);
+    deleteKDTree(root->right);
+    delete root;
+}
