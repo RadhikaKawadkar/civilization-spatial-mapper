@@ -20,24 +20,39 @@ double linearSearch(
     return best;
 }
 
-void benchmarkKDTree(KDNode* root,
-                     const std::vector<Civilization>& civs)
+void benchmarkTrees(KDNode* root,
+                    const RTree& rtree,
+                    const std::vector<Civilization>& civs)
 {
     double qlat = 30;
     double qlon = 70;
 
-    Civilization nearest;
-    double bestDist = std::numeric_limits<double>::max();
+    Civilization kdNearest;
+    double bestDistKD = std::numeric_limits<double>::max();
 
     auto startKD = std::chrono::high_resolution_clock::now();
 
-    nearestNeighbor(root, qlat, qlon, nearest, bestDist, 0);
+    nearestNeighbor(root, qlat, qlon, kdNearest, bestDistKD, 0);
 
     auto endKD = std::chrono::high_resolution_clock::now();
 
     auto kdTime =
         std::chrono::duration_cast<std::chrono::microseconds>(
             endKD - startKD);
+
+    Civilization rtreeNearest;
+    double bestDistRTree = std::numeric_limits<double>::max();
+
+    auto startRTree = std::chrono::high_resolution_clock::now();
+
+    Point queryPt = {qlon, qlat};
+    rtree.nearestNeighbor(queryPt, rtreeNearest, bestDistRTree);
+
+    auto endRTree = std::chrono::high_resolution_clock::now();
+
+    auto rtreeTime =
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            endRTree - startRTree);
 
     auto startLinear = std::chrono::high_resolution_clock::now();
 
@@ -50,9 +65,7 @@ void benchmarkKDTree(KDNode* root,
             endLinear - startLinear);
 
     std::cout << "\nBenchmark Results:\n";
-    std::cout << "KD Tree Time: "
-              << kdTime.count() << " microseconds\n";
-
-    std::cout << "Linear Search Time: "
-              << linearTime.count() << " microseconds\n";
+    std::cout << "KD Tree Time      : " << kdTime.count() << " microseconds\n";
+    std::cout << "R-Tree Time       : " << rtreeTime.count() << " microseconds\n";
+    std::cout << "Linear Search Time: " << linearTime.count() << " microseconds\n";
 }

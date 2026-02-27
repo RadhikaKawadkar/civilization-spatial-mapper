@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <chrono>
+#include "core/rtree/rtree.h"
 
 void displayMenu()
 {
@@ -14,22 +16,41 @@ void displayMenu()
     std::cout << "  3. KD-Tree Structure View\n";
     std::cout << "  4. Performance Benchmark Results\n";
     std::cout << "  5. Exit System\n";
+    std::cout << "  6. Run Spatial Scaling Stress Test\n";
     std::cout << "======================================================\n";
-    std::cout << "Select Operation Mode (1-5): ";
+    std::cout << "Select Operation Mode (1-6): ";
 }
 
 int main()
 {
     Logger::info("Initializing Spatial Intelligence System...");
     Logger::info("Loading dataset components...");
-
     auto civs = loadCivilizations("data/final_dataset.csv");
 
     Logger::info("Constructing KD-Tree Engine...");
+    auto startKD = std::chrono::high_resolution_clock::now();
     KDNode* root = nullptr;
-
     for (const auto& c : civs)
         root = insertKD(root, c, 0);
+    auto endKD = std::chrono::high_resolution_clock::now();
+    auto kdInsertTime = std::chrono::duration_cast<std::chrono::microseconds>(endKD - startKD);
+
+    Logger::info("Constructing R-Tree Engine...");
+    auto startRTree = std::chrono::high_resolution_clock::now();
+    RTree rtree(4); // Using maxChildren = 4
+    for (const auto& c : civs) {
+        Point pt;
+        pt.x = c.longitude;
+        pt.y = c.latitude;
+        pt.civ = c;
+        rtree.insert(pt);
+    }
+    auto endRTree = std::chrono::high_resolution_clock::now();
+    auto rtreeInsertTime = std::chrono::duration_cast<std::chrono::microseconds>(endRTree - startRTree);
+
+    std::cout << "\n[Initialization Benchmark]\n";
+    std::cout << "KD-Tree Insert Time: " << kdInsertTime.count() << " microseconds\n";
+    std::cout << "R-Tree Insert Time: " << rtreeInsertTime.count() << " microseconds\n\n";
 
     Logger::info("System Architecture successfully deployed.");
 
@@ -120,8 +141,12 @@ int main()
             std::cout << "\n------------------------------------------------------\n";
             std::cout << "            Performance Benchmark Results           \n";
             std::cout << "------------------------------------------------------\n";
-            benchmarkKDTree(root, civs);
+            benchmarkTrees(root, rtree, civs);
             std::cout << "------------------------------------------------------\n";
+        }
+        else if (choice == 6)
+        {
+            runSpatialScalingTest();
         }
         else if (choice == 5)
         {
