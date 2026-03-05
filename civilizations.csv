@@ -1,0 +1,16 @@
+name,latitude,longitude,start_year,end_year,region,resource_density,knowledge_density,military_strength
+Indus Valley,23.5,68.4,-3300,-1300,South Asia,85,82,60
+Ancient Egypt,26.8,30.8,-3100,-332,North Africa,80,78,81
+Mesopotamia,33.0,44.4,-3500,-539,Middle East,78,80,75
+Ancient Greece,37.9,23.7,-800,-146,Mediterranean,70,95,72
+Roman Empire,41.9,12.5,-27,476,Mediterranean,80,70,88
+Maurya Empire,25.0,83.0,-322,-185,South Asia,82,85,80
+Han China,35.0,105.0,-206,220,East Asia,88,90,85
+Maya,16.0,-89.0,250,900,Mesoamerica,70,88,65
+Persian Empire,32.0,53.0,-550,-330,Middle East,85,75,90
+Byzantine,41.0,29.0,330,1453,Mediterranean,75,80,78
+Vedic India,28.0,77.0,-1500,-600,South Asia,75,90,70
+Aztec,19.4,-99.1,1300,1521,Mesoamerica,72,80,85
+Mongol Empire,47.0,106.0,1206,1368,Central Asia,65,60,98
+Ottoman Empire,39.9,32.9,1299,1922,Middle East,80,72,88
+Inca,-13.5,-72.0,1400,1533,South America,78,75,82
