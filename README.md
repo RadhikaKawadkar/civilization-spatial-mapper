@@ -1,108 +1,153 @@
 # 🗺️ Civilization Spatial Intelligence Mapper
+
 **DSA Industry Project | KD-Trees · R-Trees · Multi-Dimensional Indexing**
 
----
-
-## 📌 Problem Statement
-Civilizations are traditionally compared philosophically or ethically — both subjective.  
-This project compares them **purely on geography** using spatial data structures.
+> A spatial intelligence engine that compares civilizations based on geography using KD-Trees and multi-dimensional indexing, enabling efficient region and proximity queries at O(log n) average time complexity.
 
 ---
 
-## 🏗️ Architecture
+## 🚀 Live Demo
+
+Open `civilization_mapper_frontend.html` directly in any browser — no server required.
+
+---
+
+## 📁 Project Structure
 
 ```
-Data Ingestion Layer    → CSV Loader (civilizations.csv)
-        ↓
-Spatial Indexing Engine → KD-Tree (built from scratch) + R-Tree (bounding boxes)
-        ↓
-Query Engine            → Nearest Neighbor | Range Query | R-Tree Point Lookup
-        ↓
-Analysis Layer          → Comparative Analysis | Time Complexity Report
-        ↓
-Reporting Layer         → Console output + JSON export (for frontend)
+civilization-spatial-mapper/
+├── civilization_mapper.cpp          ← C++ backend (KD-Tree, R-Tree, queries)
+├── civilization_mapper_frontend.html ← Interactive frontend (Leaflet.js map + AI assistant)
+├── civilizations.csv                ← Dataset (27 civilizations)
+└── README.md
 ```
 
 ---
 
-## 🧠 DSA Concepts Used
+## ⚙️ How to Run the C++ Backend
 
-| Concept | Where Used |
+**Requirements:** g++ with C++17 support
+
+```bash
+# Compile
+g++ -std=c++17 -o civilization_mapper civilization_mapper.cpp
+
+# Run
+./civilization_mapper          # Linux / Mac
+civilization_mapper.exe        # Windows
+```
+
+**Expected output:**
+- KD-Tree inorder traversal (27 nodes)
+- Nearest Neighbor Query result
+- Range Query results
+- Comparative Analysis (Indus Valley vs Ancient Egypt)
+- Time Complexity Analysis table
+- Exports `civilizations_data.json` for frontend
+
+---
+
+## 🌍 How to Use the Frontend
+
+1. Open `civilization_mapper_frontend.html` in Chrome, Firefox, or Edge
+2. The map loads centered on India with all 27 civilization markers
+3. **Click anywhere on the map** → runs a KD-Tree nearest-neighbor query
+4. Use the **Query Engine** panel for nearest neighbor, range, compare, and R-Tree queries
+5. Use **Add Civilization** to insert new data points into the KD-Tree (saved to browser storage)
+6. Click **Export CSV** to sync new civilizations to the C++ backend
+
+---
+
+## 🧠 DSA Concepts Implemented
+
+| Concept | Implementation |
 |---|---|
-| Binary Trees | KD-Tree node structure |
-| Recursion | KD-Tree insert, nearest neighbor, range query |
-| Divide & Conquer | Axis-based splitting (lat/lon alternating) |
-| Spatial Pruning | Branch skipping in nearest neighbor search |
-| Multi-dim Indexing | 2D point indexing (latitude, longitude) |
-| Bounding Boxes | R-Tree region overlap queries |
+| KD-Tree | Built from scratch in C++ — recursive insertion, axis-based splitting |
+| Nearest Neighbor Search | O(log n) with branch pruning |
+| Range Query | O(log n + k) spatial bounding box search |
+| R-Tree | Bounding box regional index (8 geographic regions) |
+| Divide & Conquer | Median-based balanced tree construction |
+| Multi-dimensional Indexing | 2D spatial indexing (latitude × longitude) |
 
----
+### Time Complexity
 
-## ⏱️ Time Complexity
-
-| Method | Complexity | Operations (n=15) |
+| Operation | Average | Worst |
 |---|---|---|
-| Linear Search | O(n) | 15 |
-| KD-Tree (avg) | O(log n) | 4 |
-| R-Tree Range | O(log n + k) | ~7 |
-
-**KD-Tree is ~3–4x faster than linear search at n=15, and exponentially faster at scale.**
-
----
-
-## 🚀 How to Compile & Run
-
-### Option 1 — Using Make (recommended)
-```bash
-make        # compile
-make run    # compile + run
-make clean  # remove binary
-```
-
-### Option 2 — Direct g++ command
-```bash
-g++ -std=c++17 -Wall -O2 -o civilization_mapper civilization_mapper.cpp
-./civilization_mapper
-```
-
-> ✅ Tested with: g++ 13.x on Ubuntu / g++ 12.x on Windows (MinGW)
+| KD-Tree Insert | O(log n) | O(n) |
+| Nearest Neighbor | O(log n) | O(n) |
+| Range Query | O(log n + k) | O(n) |
+| Linear Search | O(n) | O(n) |
 
 ---
 
-## 📂 Files
+## 🇮🇳 Indian Civilizations Dataset (15 civilizations)
 
-```
-civilization_mapper.cpp   → Full C++ source (KD-Tree, R-Tree, queries)
-civilizations.csv         → Dataset (15 civilizations, can add more)
-Makefile                  → One-command build
-civilization_mapper_frontend.html → Interactive browser UI (open in Chrome)
-README.md                 → This file
-```
+| Civilization | Period | Region |
+|---|---|---|
+| Indus Valley | 3300–1300 BCE | South Asia |
+| Vedic India | 1500–600 BCE | South Asia |
+| Maurya Empire | 322–185 BCE | South Asia |
+| Gupta Empire | 320–550 CE | South Asia |
+| Chola Dynasty | 300–1279 CE | South India |
+| Vijayanagara | 1336–1646 CE | South India |
+| Maratha Empire | 1674–1818 CE | South Asia |
+| Delhi Sultanate | 1206–1526 CE | South Asia |
+| Mughal Empire | 1526–1857 CE | South Asia |
+| Pallava Dynasty | 275–897 CE | South India |
+| Satavahana | 230 BCE–220 CE | South Asia |
+| Kushana Empire | 30–375 CE | Central Asia |
+| Rashtrakuta | 753–982 CE | South India |
+| Pala Empire | 750–1161 CE | South Asia |
+| Chera Kingdom | 300 BCE–1102 CE | South India |
 
 ---
 
-## 🔎 Queries Supported
+## 🏗️ System Architecture
 
-1. **Nearest Neighbor** — "Which civilization existed closest to (30°N, 70°E)?"
-2. **Range Query** — "Find all civilizations in Lat[20–40], Lon[25–90]"
-3. **R-Tree Point Lookup** — "Which region does (25°N, 75°E) fall in?"
-4. **Comparative Analysis** — Compare any two civilizations spatially
-
----
-
-## 📊 Sample Output
 ```
-✅ Data Ingestion Complete: 15 civilizations loaded.
-✅ KD-Tree Built: 15 nodes indexed.
-
-🔎 Nearest to (30.0, 70.0) → Indus Valley [23.5, 68.4] | Score: 75.67
-🔎 Range Lat[20-40] Lon[25-90] → 7 civilizations found
-🏆 Comparative: Ancient Egypt (79.67) > Indus Valley (75.67)
-🚀 KD-Tree is ~3x faster than linear search!
+Data Ingestion Layer       → CSV Loader (civilizations.csv)
+        ↓
+Spatial Indexing Engine    → KD-Tree (point queries)
+                           → R-Tree  (region queries)
+        ↓
+Query Engine               → Nearest Neighbor  O(log n)
+                           → Range Query       O(log n + k)
+                           → Comparative Analysis
+        ↓
+Analysis Layer             → Complexity comparison (KD-Tree vs Linear)
+        ↓
+Visualization Layer        → C++ console output
+                           → HTML/JS Leaflet.js frontend
+                           → AI Chat Assistant (Claude API)
 ```
 
 ---
 
-## 👩‍💻 Team
-Industry Project — DSA Subject  
-Technology: C++17 | KD-Trees | R-Trees | Spatial Indexing
+## 🗺️ Frontend Features
+
+- **Real world map** — Leaflet.js with CARTO Dark tiles (no API key needed)
+- **27 civilization markers** — Orange = Indian, Blue = Global, with popup bar charts
+- **Click-to-query** — Click anywhere to run nearest-neighbor search
+- **Range query rectangle** — Visualized on the map
+- **Compare line** — Draws a line between two compared civilizations
+- **🇮🇳 Focus India** button — Zooms to Indian subcontinent
+- **AI Assistant** — Bottom-right chat popup powered by Claude API
+- **localStorage persistence** — Added civilizations survive page refresh
+- **Export CSV** — Syncs frontend data back to C++ backend
+
+---
+
+## 👥 Team
+
+**Project:** Civilization Spatial Intelligence Mapper  
+**Technology:** C++17, HTML/CSS/JavaScript, Leaflet.js  
+**DSA Focus:** KD-Trees, R-Trees, Multi-Dimensional Spatial Indexing
+
+---
+
+## 📚 References
+
+- Bentley, J.L. (1975). *Multidimensional binary search trees used for associative searching*
+- Guttman, A. (1984). *R-Trees: A Dynamic Index Structure for Spatial Searching*
+- Leaflet.js — [leafletjs.com](https://leafletjs.com)
+- CARTO Map Tiles — [carto.com](https://carto.com)

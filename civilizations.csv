@@ -1,16 +1,28 @@
 name,latitude,longitude,start_year,end_year,region,resource_density,knowledge_density,military_strength
-Indus Valley,23.5,68.4,-3300,-1300,South Asia,85,82,60
 Ancient Egypt,26.8,30.8,-3100,-332,North Africa,80,78,81
 Mesopotamia,33.0,44.4,-3500,-539,Middle East,78,80,75
 Ancient Greece,37.9,23.7,-800,-146,Mediterranean,70,95,72
 Roman Empire,41.9,12.5,-27,476,Mediterranean,80,70,88
-Maurya Empire,25.0,83.0,-322,-185,South Asia,82,85,80
 Han China,35.0,105.0,-206,220,East Asia,88,90,85
 Maya,16.0,-89.0,250,900,Mesoamerica,70,88,65
 Persian Empire,32.0,53.0,-550,-330,Middle East,85,75,90
 Byzantine,41.0,29.0,330,1453,Mediterranean,75,80,78
-Vedic India,28.0,77.0,-1500,-600,South Asia,75,90,70
 Aztec,19.4,-99.1,1300,1521,Mesoamerica,72,80,85
 Mongol Empire,47.0,106.0,1206,1368,Central Asia,65,60,98
 Ottoman Empire,39.9,32.9,1299,1922,Middle East,80,72,88
 Inca,-13.5,-72.0,1400,1533,South America,78,75,82
+Indus Valley,27.0,68.0,-3300,-1300,South Asia,88,85,60
+Vedic India,28.0,77.0,-1500,-600,South Asia,75,92,70
+Maurya Empire,25.0,83.0,-322,-185,South Asia,85,88,85
+Gupta Empire,24.5,82.5,320,550,South Asia,85,95,78
+Chola Dynasty,10.8,79.7,300,1279,South India,82,88,86
+Vijayanagara,15.3,76.5,1336,1646,South India,80,85,84
+Maratha Empire,18.5,73.8,1674,1818,South Asia,78,75,92
+Delhi Sultanate,28.6,77.2,1206,1526,South Asia,76,72,88
+Mughal Empire,27.2,78.0,1526,1857,South Asia,90,88,90
+Pallava Dynasty,12.8,79.7,275,897,South India,78,87,80
+Satavahana,17.0,79.5,-230,220,South Asia,80,82,78
+Kushana Empire,34.0,67.0,30,375,Central Asia,82,80,85
+Rashtrakuta,17.3,76.8,753,982,South India,79,84,83
+Pala Empire,25.6,85.1,750,1161,South Asia,77,90,76
+Chera Kingdom,10.5,76.2,-300,1102,South India,83,82,75
