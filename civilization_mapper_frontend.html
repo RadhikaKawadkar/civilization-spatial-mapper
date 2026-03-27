@@ -8,21 +8,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-/* ═══════════════════════════════════════════════
-   ROOT & RESET
-═══════════════════════════════════════════════ */
 :root{
   --gold:#c9a84c;--gold-light:#e8c97a;--bg-deep:#050a14;--bg-card:#0b1422;
   --accent-teal:#00b4d8;--accent-amber:#f4a261;--text-primary:#e8e0d0;
   --text-muted:#7a8fa6;--border:rgba(201,168,76,0.2);--glow:rgba(201,168,76,0.15);
+  --green:#4ade80;--red:#f87171;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rajdhani',sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,180,216,.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
 
-/* ═══════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════ */
+/* ── HEADER ── */
 header{position:relative;text-align:center;padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(201,168,76,.08) 0%,transparent 100%);}
 .header-icon{font-size:2.5rem;margin-bottom:.5rem;}
 h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2.8rem);font-weight:700;background:linear-gradient(135deg,var(--gold-light),var(--gold),#a07830);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.05em;line-height:1.2;}
@@ -30,24 +26,32 @@ h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2.8rem);font-weight:700
 .tags{display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;}
 .tag{font-size:.75rem;padding:.25rem .8rem;border:1px solid var(--border);border-radius:20px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);}
 
-/* ═══════════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════════ */
+/* ── LAYOUT ── */
 main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:2rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
 @media(max-width:900px){main{grid-template-columns:1fr;}}
 .full-width{grid-column:1/-1;}
 
-/* ═══════════════════════════════════════════════
-   CARDS
-═══════════════════════════════════════════════ */
+/* ── CARDS ── */
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.6;animation:borderGlow 3s ease-in-out infinite;}
 .card:hover{border-color:rgba(201,168,76,.4);box-shadow:0 0 30px var(--glow);}
 .card-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:var(--gold);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;text-transform:uppercase;letter-spacing:.08em;}
 
-/* ═══════════════════════════════════════════════
-   FORMS
-═══════════════════════════════════════════════ */
+/* ── API STATUS BANNER ── */
+#apiBanner{
+  display:flex;align-items:center;gap:12px;padding:.9rem 1.2rem;
+  border-radius:10px;border:1px solid;margin-bottom:1.5rem;
+  font-size:.85rem;transition:all .4s;
+}
+#apiBanner.checking{border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.05);color:var(--gold);}
+#apiBanner.connected{border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.06);color:var(--green);}
+#apiBanner.offline{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.06);color:var(--red);}
+.api-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.api-dot.pulse{animation:dotPulse 1.2s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.api-endpoint-list{margin-top:.4rem;font-size:.75rem;color:var(--text-muted);font-family:'Courier New',monospace;}
+
+/* ── FORMS ── */
 .input-grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
 .field-group{display:flex;flex-direction:column;gap:.3rem;}
 label{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;}
@@ -62,58 +66,38 @@ select option{background:#0b1422;}
 .btn-danger{background:transparent;border:1px solid #f87171;color:#f87171;}
 .btn-danger:hover{background:rgba(248,113,113,.08);}
 .btn-row{display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
 
-/* ═══════════════════════════════════════════════
-   LEAFLET MAP — ENHANCED
-═══════════════════════════════════════════════ */
-#leafletMap{width:100%;height:580px;border-radius:10px;border:1px solid var(--border);z-index:1;}
+/* ── SPINNER ── */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* Dark theme popups */
-.leaflet-popup-content-wrapper{background:#0d1b2e!important;border:1px solid rgba(201,168,76,.5)!important;border-radius:12px!important;color:var(--text-primary)!important;box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 20px rgba(201,168,76,.1)!important;min-width:220px;}
+/* ── LEAFLET ── */
+#leafletMap{width:100%;height:560px;border-radius:10px;border:1px solid var(--border);z-index:1;}
+.leaflet-popup-content-wrapper{background:#0d1b2e!important;border:1px solid rgba(201,168,76,.5)!important;border-radius:12px!important;color:var(--text-primary)!important;box-shadow:0 8px 32px rgba(0,0,0,.7)!important;min-width:220px;}
 .leaflet-popup-tip{background:#0d1b2e!important;}
 .leaflet-popup-content{margin:14px 18px!important;font-family:'Rajdhani',sans-serif;}
-.leaflet-popup-close-button{color:var(--gold)!important;font-size:18px!important;top:8px!important;right:10px!important;}
+.leaflet-popup-close-button{color:var(--gold)!important;font-size:18px!important;}
 .popup-name{font-family:'Cinzel',serif;font-size:1.05rem;color:#c9a84c;font-weight:700;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(201,168,76,.2);}
-.popup-period{font-size:.75rem;color:var(--text-muted);margin-bottom:8px;letter-spacing:.05em;}
-.popup-row{display:flex;justify-content:space-between;align-items:center;font-size:.83rem;margin:4px 0;gap:8px;}
-.popup-label{color:#7a8fa6;}
-.popup-val{color:#e8e0d0;font-weight:600;}
-.popup-bars{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
+.popup-row{display:flex;justify-content:space-between;font-size:.83rem;margin:4px 0;}
+.popup-label{color:#7a8fa6;}.popup-val{color:#e8e0d0;font-weight:600;}
 .popup-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
 .popup-bar-label{width:68px;font-size:.72rem;color:var(--text-muted);}
 .popup-bar-track{flex:1;background:rgba(255,255,255,.08);border-radius:3px;height:6px;overflow:hidden;}
 .popup-bar-fill{height:100%;border-radius:3px;}
-.popup-score{font-size:1.15rem;font-weight:700;text-align:center;margin-top:10px;padding:6px;background:rgba(201,168,76,.08);border-radius:6px;}
-.popup-custom{font-size:.7rem;color:#00b4d8;text-align:center;margin-top:4px;letter-spacing:.08em;}
-.popup-region-badge{display:inline-block;font-size:.68rem;padding:2px 8px;background:rgba(0,180,216,.12);border:1px solid rgba(0,180,216,.3);border-radius:20px;color:#00b4d8;margin-bottom:6px;}
-
-/* Leaflet controls */
-.leaflet-control-zoom a{background:#0d1b2e!important;color:#c9a84c!important;border-color:rgba(201,168,76,.3)!important;font-size:16px!important;}
-.leaflet-control-zoom a:hover{background:rgba(201,168,76,.12)!important;}
+.popup-score{font-size:1.1rem;font-weight:700;text-align:center;margin-top:10px;padding:6px;background:rgba(201,168,76,.08);border-radius:6px;}
+.leaflet-control-zoom a{background:#0d1b2e!important;color:#c9a84c!important;border-color:rgba(201,168,76,.3)!important;}
 .leaflet-control-attribution{background:rgba(5,10,20,.8)!important;color:#7a8fa6!important;font-size:.65rem!important;}
 .leaflet-control-attribution a{color:#c9a84c!important;}
-.leaflet-tooltip{background:#0d1b2e!important;border:1px solid rgba(201,168,76,.3)!important;color:#c9a84c!important;font-family:'Cinzel',serif!important;font-size:.78rem!important;border-radius:6px!important;box-shadow:0 2px 12px rgba(0,0,0,.5)!important;}
-
-/* Map toolbar */
 .map-toolbar{display:flex;gap:.6rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center;}
 .map-toolbar .btn{padding:.45rem 1rem;font-size:.78rem;}
 .map-mode-label{font-size:.78rem;color:var(--text-muted);margin-left:auto;}
-#mapClickInfo{font-size:.78rem;color:var(--text-muted);margin-top:.6rem;text-align:center;min-height:1.4em;padding:.3rem;}
-
-/* Cluster pulse animation */
-@keyframes markerPulse{0%{transform:scale(1);opacity:.8}50%{transform:scale(1.4);opacity:.3}100%{transform:scale(1.8);opacity:0}}
-.marker-pulse{animation:markerPulse .8s ease-out forwards;}
-
-/* ═══════════════════════════════════════════════
-   MAP LEGEND
-═══════════════════════════════════════════════ */
+#mapClickInfo{font-size:.78rem;color:var(--text-muted);margin-top:.6rem;text-align:center;min-height:1.4em;}
 .map-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.8rem;padding:.7rem 1rem;background:rgba(255,255,255,.02);border-radius:8px;border:1px solid var(--border);}
 .legend-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-muted);}
 .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 
-/* ═══════════════════════════════════════════════
-   TABLE
-═══════════════════════════════════════════════ */
+/* ── TABLE ── */
 .data-table{width:100%;border-collapse:collapse;font-size:.88rem;}
 .data-table th{font-family:'Cinzel',serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);padding:.7rem .6rem;border-bottom:1px solid var(--border);text-align:left;}
 .data-table td{padding:.6rem .6rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-primary);}
@@ -122,17 +106,18 @@ select option{background:#0b1422;}
 .score-high{background:rgba(201,168,76,.15);color:var(--gold);}
 .score-mid{background:rgba(0,180,216,.12);color:var(--accent-teal);}
 .score-low{background:rgba(244,162,97,.12);color:var(--accent-amber);}
-.custom-row td{border-left:2px solid var(--accent-teal);}
 .indian-row td{border-left:2px solid #f97316;}
+.custom-row td{border-left:2px solid var(--accent-teal);}
 
-/* ═══════════════════════════════════════════════
-   MISC UI
-═══════════════════════════════════════════════ */
-#treeCanvas{width:100%;height:320px;background:#071428;border-radius:8px;border:1px solid var(--border);}
+/* ── OUTPUT PANEL ── */
 .output-panel{background:rgba(0,0,0,.3);border:1px solid rgba(0,180,216,.2);border-radius:8px;padding:1rem;min-height:80px;font-family:'Courier New',monospace;font-size:.85rem;color:var(--accent-teal);line-height:1.7;margin-top:1rem;white-space:pre-wrap;}
 .output-panel .hl{color:var(--gold);font-weight:bold;}
 .output-panel .ok{color:#4ade80;}
 .output-panel .inf{color:var(--accent-amber);}
+.output-panel .err{color:#f87171;}
+
+/* ── MISC ── */
+#treeCanvas{width:100%;height:320px;background:#071428;border-radius:8px;border:1px solid var(--border);}
 .bar-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem;}
 .bar-label{width:110px;font-size:.8rem;color:var(--text-muted);flex-shrink:0;}
 .bar-track{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:10px;overflow:hidden;}
@@ -144,71 +129,38 @@ select option{background:#0b1422;}
 .complexity-label{font-size:.7rem;color:var(--text-muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.08em;}
 .complexity-method{font-size:.8rem;color:var(--accent-teal);margin-top:.2rem;}
 .heat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-top:.5rem;}
-.heat-cell{border-radius:8px;padding:.8rem;text-align:center;transition:transform .2s;cursor:default;}
+.heat-cell{border-radius:8px;padding:.8rem;text-align:center;transition:transform .2s;}
 .heat-cell:hover{transform:scale(1.04);}
 .heat-cell .heat-name{font-size:.8rem;font-weight:600;}
 .heat-cell .heat-score{font-size:1.3rem;font-weight:700;margin-top:.2rem;}
-.status-bar{display:flex;gap:1.5rem;align-items:center;padding:.7rem 1.2rem;background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:8px;margin-bottom:1.5rem;flex-wrap:wrap;}
+.status-bar{display:flex;gap:1.5rem;align-items:center;padding:.7rem 1.2rem;background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;flex-wrap:wrap;}
 .status-item{display:flex;align-items:center;gap:.4rem;font-size:.82rem;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
 .status-label{color:var(--text-muted);}.status-val{color:var(--text-primary);font-weight:600;}
 
-/* ═══════════════════════════════════════════════
-   AI CHAT ASSISTANT
-═══════════════════════════════════════════════ */
-#chatToggle{
-  position:fixed;bottom:28px;right:28px;z-index:9999;
-  width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);
-  background:linear-gradient(135deg,#0d1b2e,#1a2f4a);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 20px rgba(201,168,76,.25);
-  transition:transform .2s,box-shadow .2s;
-  font-size:1.5rem;
-}
-#chatToggle:hover{transform:scale(1.08);box-shadow:0 6px 30px rgba(0,0,0,.7),0 0 30px rgba(201,168,76,.35);}
+/* ── AI CHAT ── */
+#chatToggle{position:fixed;bottom:28px;right:28px;z-index:9999;width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(135deg,#0d1b2e,#1a2f4a);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 20px rgba(201,168,76,.25);transition:transform .2s;font-size:1.5rem;}
+#chatToggle:hover{transform:scale(1.08);}
 #chatToggle .chat-badge{position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:#4ade80;border-radius:50%;border:2px solid var(--bg-deep);font-size:.6rem;color:#050a14;font-weight:700;display:flex;align-items:center;justify-content:center;}
-
-#chatWindow{
-  position:fixed;bottom:100px;right:28px;z-index:9998;
-  width:380px;max-width:calc(100vw - 40px);
-  background:#0a1628;border:1px solid rgba(201,168,76,.35);
-  border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.8),0 0 40px rgba(201,168,76,.08);
-  display:none;flex-direction:column;overflow:hidden;
-  animation:chatSlideIn .25s ease;
-}
+#chatWindow{position:fixed;bottom:100px;right:28px;z-index:9998;width:380px;max-width:calc(100vw - 40px);background:#0a1628;border:1px solid rgba(201,168,76,.35);border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.8);display:none;flex-direction:column;overflow:hidden;animation:chatSlideIn .25s ease;}
 @keyframes chatSlideIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
 #chatWindow.open{display:flex;}
-
-.chat-header{
-  padding:14px 18px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(0,180,216,.06));
-  border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;gap:10px;
-}
+.chat-header{padding:14px 18px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(0,180,216,.06));border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;gap:10px;}
 .chat-header-icon{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a07830);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .chat-header-text h3{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold);margin:0;}
 .chat-header-text p{font-size:.7rem;color:var(--text-muted);margin:0;}
 .chat-header-close{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:2px 6px;border-radius:4px;}
-.chat-header-close:hover{color:var(--text-primary);background:rgba(255,255,255,.06);}
-
-#chatMessages{
-  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
-  max-height:360px;min-height:200px;
-  scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.2) transparent;
-}
-#chatMessages::-webkit-scrollbar{width:4px;}
-#chatMessages::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2);border-radius:2px;}
-
+#chatMessages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:360px;min-height:200px;scrollbar-width:thin;}
 .chat-msg{max-width:88%;font-size:.84rem;line-height:1.55;padding:9px 13px;border-radius:10px;word-break:break-word;}
 .chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.1));border:1px solid rgba(201,168,76,.25);color:var(--text-primary);border-bottom-right-radius:3px;}
 .chat-msg.assistant{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-primary);border-bottom-left-radius:3px;}
 .chat-msg.assistant strong{color:var(--gold);}
 .chat-msg.thinking{color:var(--text-muted);font-style:italic;}
 .chat-msg.thinking::after{content:'...';animation:dots 1.2s infinite;}
-@keyframes dots{0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'}}
-
+@keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
 .chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;}
 .chat-suggestion{font-size:.72rem;padding:5px 10px;border:1px solid rgba(201,168,76,.25);border-radius:20px;background:rgba(201,168,76,.05);color:var(--gold);cursor:pointer;transition:all .15s;font-family:'Rajdhani',sans-serif;}
 .chat-suggestion:hover{background:rgba(201,168,76,.12);border-color:var(--gold);}
-
 .chat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);}
 #chatInput{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:8px;color:var(--text-primary);font-family:'Rajdhani',sans-serif;font-size:.85rem;padding:.5rem .8rem;resize:none;outline:none;line-height:1.4;}
 #chatInput:focus{border-color:var(--gold);}
@@ -222,44 +174,54 @@ select option{background:#0b1422;}
 </head>
 <body>
 
-<!-- ═══ HEADER ═══════════════════════════════════ -->
 <header>
   <div class="header-icon">🗺️</div>
   <h1>Civilization Spatial Intelligence Mapper</h1>
-  <p class="subtitle">DSA Industry Project &nbsp;|&nbsp; KD-Trees · R-Trees · Multi-Dimensional Indexing</p>
+  <p class="subtitle">DSA Industry Project &nbsp;|&nbsp; KD-Trees · R-Trees · REST API · C++ Backend</p>
   <div class="tags">
-    <span class="tag">KD-Tree</span><span class="tag">R-Tree</span><span class="tag">Nearest Neighbor</span>
-    <span class="tag">Range Query</span><span class="tag">Leaflet.js</span><span class="tag">C++</span><span class="tag">AI Assistant</span>
+    <span class="tag">KD-Tree</span><span class="tag">R-Tree</span><span class="tag">REST API</span>
+    <span class="tag">C++ Backend</span><span class="tag">Leaflet.js</span><span class="tag">Live Queries</span>
   </div>
 </header>
 
 <main>
 
-<!-- STATUS -->
+<!-- ── API STATUS + STATUS BAR ── -->
 <div class="full-width">
+  <!-- API Connection Banner -->
+  <div id="apiBanner" class="checking">
+    <div class="api-dot pulse" id="apiDot" style="background:#c9a84c"></div>
+    <div>
+      <div id="apiStatusText"><span class="spinner"></span>Connecting to C++ REST API at http://localhost:8080...</div>
+      <div class="api-endpoint-list" id="apiEndpointList"></div>
+    </div>
+    <button class="btn btn-secondary" style="margin-left:auto;padding:.4rem .9rem;font-size:.75rem" onclick="checkAPIConnection()">↺ Retry</button>
+  </div>
+
+  <!-- Stats -->
   <div class="status-bar">
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">KD-Tree:</span><span class="status-val" id="statusKD">— nodes</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">R-Tree Regions:</span><span class="status-val">8 indexed</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Dataset:</span><span class="status-val" id="statusCount">— civilizations</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Indian Civs:</span><span class="status-val" id="statusIndian">—</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Map:</span><span class="status-val">Leaflet.js · CARTO Dark</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">KD-Tree:</span><span class="status-val" id="statusKD">—</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">R-Tree Regions:</span><span class="status-val" id="statusRT">—</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">Civilizations:</span><span class="status-val" id="statusCount">—</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">Backend:</span><span class="status-val">C++ · httplib</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">Speedup:</span><span class="status-val" id="statusSpeedup">—</span></div>
   </div>
 </div>
 
-<!-- ADD CIVILIZATION -->
+<!-- ── ADD CIVILIZATION ── -->
 <div class="card">
   <div class="card-title"><span>⚔️</span> Add Civilization</div>
   <div class="input-grid">
     <div class="field-group"><label>Name</label><input type="text" id="civName" placeholder="e.g. Chola Empire"></div>
-    <div class="field-group"><label>Latitude</label><input type="number" id="civLat" placeholder="11.1" step="0.1"></div>
-    <div class="field-group"><label>Longitude</label><input type="number" id="civLon" placeholder="79.8" step="0.1"></div>
+    <div class="field-group"><label>Latitude</label><input type="number" id="civLat" placeholder="10.8" step="0.1"></div>
+    <div class="field-group"><label>Longitude</label><input type="number" id="civLon" placeholder="79.7" step="0.1"></div>
     <div class="field-group"><label>Region</label><input type="text" id="civRegion" placeholder="South Asia"></div>
     <div class="field-group"><label>Resource (1–100)</label><input type="number" id="civRes" min="1" max="100" placeholder="85"></div>
     <div class="field-group"><label>Knowledge (1–100)</label><input type="number" id="civKnow" min="1" max="100" placeholder="90"></div>
     <div class="field-group"><label>Military (1–100)</label><input type="number" id="civMil" min="1" max="100" placeholder="75"></div>
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary"   onclick="addCivilization()">+ Insert to KD-Tree</button>
+    <button class="btn btn-primary"   id="btnAdd"   onclick="addCivilization()">+ Insert to KD-Tree</button>
     <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
     <button class="btn btn-danger"    onclick="clearCustomCivs()">🗑 Clear Added</button>
   </div>
@@ -267,16 +229,16 @@ select option{background:#0b1422;}
   <div id="addOutput" class="output-panel" style="display:none"></div>
 </div>
 
-<!-- QUERY ENGINE -->
+<!-- ── QUERY ENGINE ── -->
 <div class="card">
-  <div class="card-title"><span>🔎</span> Spatial Query Engine</div>
+  <div class="card-title"><span>🔎</span> Spatial Query Engine <span style="font-size:.7rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;font-weight:400;margin-left:.5rem">← powered by C++ REST API</span></div>
   <div style="margin-bottom:1rem;">
     <label>Query Type</label>
     <select id="queryType" onchange="toggleQueryFields()" style="margin-top:.3rem">
-      <option value="nearest">Nearest Neighbor (KD-Tree)</option>
-      <option value="range">Range / Region Query (KD-Tree)</option>
-      <option value="compare">Comparative Analysis</option>
-      <option value="rtree">R-Tree Point Lookup</option>
+      <option value="nearest">Nearest Neighbor — GET /api/nearest</option>
+      <option value="range">Range Query — GET /api/range</option>
+      <option value="compare">Compare — GET /api/compare</option>
+      <option value="rtree">R-Tree Lookup — GET /api/rtree</option>
     </select>
   </div>
   <div id="nearestFields" class="input-grid">
@@ -300,45 +262,49 @@ select option{background:#0b1422;}
     <div class="field-group"><label>Longitude</label><input type="number" id="rtLon" value="78.0" step="0.1"></div>
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary"   onclick="runQuery()">▶ Run Query</button>
+    <button class="btn btn-primary"   id="btnQuery" onclick="runQuery()">▶ Run Query</button>
     <button class="btn btn-secondary" onclick="clearOutput()">✕ Clear</button>
   </div>
   <div id="queryOutput" class="output-panel" style="display:none"></div>
 </div>
 
-<!-- LEAFLET MAP (full width) -->
+<!-- ── MAP ── -->
 <div class="card full-width">
-  <div class="card-title"><span>🌍</span> Real World Spatial Map — Leaflet.js + CARTO Dark</div>
+  <div class="card-title"><span>🌍</span> Spatial Map — Live from C++ Backend</div>
   <div class="map-toolbar">
     <button class="btn btn-secondary" id="btnNearest" onclick="setMapMode('nearest')">🎯 Nearest</button>
     <button class="btn btn-secondary" id="btnInfo"    onclick="setMapMode('info')">ℹ️ Info</button>
-    <button class="btn btn-secondary" onclick="focusIndia()">🇮🇳 Focus India</button>
+    <button class="btn btn-secondary" onclick="focusIndia()">🇮🇳 India</button>
     <button class="btn btn-secondary" onclick="fitAllMarkers()">⊞ Fit All</button>
     <button class="btn btn-secondary" onclick="toggleRegions()">🗺 Regions</button>
-    <span class="map-mode-label" id="mapModeLabel">Mode: Click → Nearest Neighbor</span>
+    <span class="map-mode-label" id="mapModeLabel">Mode: Click → /api/nearest</span>
   </div>
   <div id="leafletMap"></div>
-  <div id="mapClickInfo">Click anywhere on the map · Markers show all civilizations · Orange = Indian civilizations</div>
-  <div class="map-legend" id="mapLegend"></div>
+  <div id="mapClickInfo">Click anywhere — frontend calls C++ REST API in real time</div>
+  <div class="map-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Indian Civilization</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00b4d8"></div>Global Civilization</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fff;border:1px dashed #c9a84c"></div>Custom Added</div>
+  </div>
 </div>
 
-<!-- TABLE -->
+<!-- ── TABLE ── -->
 <div class="card full-width">
-  <div class="card-title"><span>📊</span> Civilization–Region Matrix <span style="font-size:.72rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;margin-left:.5rem;font-weight:400">(click row → locate on map · 🟠 = Indian civilization)</span></div>
+  <div class="card-title"><span>📊</span> Civilization–Region Matrix <span style="font-size:.72rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;margin-left:.5rem;font-weight:400">(click row → locate on map · 🇮🇳 = Indian)</span></div>
   <div style="overflow-x:auto">
     <table class="data-table">
       <thead><tr>
         <th>Civilization</th><th>Region</th><th>Lat</th><th>Lon</th>
-        <th>Resource</th><th>Knowledge</th><th>Military</th><th>Spatial Score</th>
+        <th>Resource</th><th>Knowledge</th><th>Military</th><th>Score</th>
       </tr></thead>
       <tbody id="civTableBody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- TREE + HEAT -->
+<!-- ── TREE + HEAT ── -->
 <div class="card">
-  <div class="card-title"><span>🌲</span> KD-Tree Structure Visualizer</div>
+  <div class="card-title"><span>🌲</span> KD-Tree Visualizer</div>
   <canvas id="treeCanvas"></canvas>
 </div>
 <div class="card">
@@ -346,9 +312,9 @@ select option{background:#0b1422;}
   <div class="heat-grid" id="heatGrid"></div>
 </div>
 
-<!-- COMPLEXITY -->
+<!-- ── COMPLEXITY ── -->
 <div class="card full-width">
-  <div class="card-title"><span>⏱️</span> Time Complexity Analysis</div>
+  <div class="card-title"><span>⏱️</span> Time Complexity Analysis <span style="font-size:.72rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;margin-left:.5rem;font-weight:400">— data from /api/stats</span></div>
   <div class="complexity-grid" id="complexityGrid"></div>
   <div style="margin-top:1.5rem">
     <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">Performance — n = <span id="nLabel">—</span> civilizations:</p>
@@ -356,42 +322,30 @@ select option{background:#0b1422;}
   </div>
 </div>
 
-<!-- COMPARE -->
+<!-- ── COMPARE PANEL ── -->
 <div class="card full-width" id="comparePanel" style="display:none">
-  <div class="card-title"><span>⚖️</span> Comparative Geographic Analysis</div>
+  <div class="card-title"><span>⚖️</span> Comparative Analysis</div>
   <div id="compareContent"></div>
 </div>
 
 </main>
 
-<!-- ═══ AI CHAT ASSISTANT ═══════════════════════ -->
-<button id="chatToggle" onclick="toggleChat()" title="Ask the AI Assistant">
-  🤖
-  <span class="chat-badge">AI</span>
-</button>
-
+<!-- ── AI CHAT ── -->
+<button id="chatToggle" onclick="toggleChat()" title="Ask the AI Assistant">🤖<span class="chat-badge">AI</span></button>
 <div id="chatWindow">
   <div class="chat-header">
     <div class="chat-header-icon">🗺️</div>
-    <div class="chat-header-text">
-      <h3>Spatial Intelligence Assistant</h3>
-      <p>Ask about KD-Trees, queries, map usage, and more</p>
-    </div>
+    <div class="chat-header-text"><h3>Spatial Intelligence Assistant</h3><p>Ask about KD-Trees, REST API, queries & more</p></div>
     <button class="chat-header-close" onclick="toggleChat()">✕</button>
   </div>
   <div id="chatMessages">
-    <div class="chat-msg assistant">
-      👋 Hello! I'm your <strong>Spatial Intelligence Assistant</strong>.<br><br>
-      I can explain how the <strong>KD-Tree</strong> works, what the <strong>spatial queries</strong> do, how to use the map, how Indian civilizations were added, and more.<br><br>
-      What would you like to know?
-    </div>
+    <div class="chat-msg assistant">👋 Hello! I'm your <strong>Spatial Intelligence Assistant</strong>.<br><br>This project connects a <strong>C++ REST API backend</strong> to this frontend using HTTP requests. Ask me how it works!<br><br>What would you like to know?</div>
   </div>
   <div class="chat-suggestions" id="chatSuggestions">
-    <span class="chat-suggestion" onclick="askSuggestion(this)">How does KD-Tree work?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">What is nearest neighbor search?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">How to use the map?</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">How does the REST API work?</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">How does KD-Tree nearest search work?</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">What is CORS and why does it matter?</span>
     <span class="chat-suggestion" onclick="askSuggestion(this)">Which Indian civilizations are included?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">What is a spatial score?</span>
     <span class="chat-suggestion" onclick="askSuggestion(this)">KD-Tree vs R-Tree difference?</span>
   </div>
   <div class="chat-input-row">
@@ -403,45 +357,22 @@ select option{background:#0b1422;}
 
 <script>
 // ════════════════════════════════════════════════
-//  DATASET — BUILTIN + EXPANDED INDIAN
+//  CONFIG
 // ════════════════════════════════════════════════
-const BUILTIN = [
-  // ── Global civilizations ──
-  {name:"Ancient Egypt",   lat:26.8, lon:30.8,  region:"North Africa",  res:80,know:78,mil:81,start:-3100,end:-332,  indian:false},
-  {name:"Mesopotamia",     lat:33.0, lon:44.4,  region:"Middle East",   res:78,know:80,mil:75,start:-3500,end:-539,  indian:false},
-  {name:"Ancient Greece",  lat:37.9, lon:23.7,  region:"Mediterranean", res:70,know:95,mil:72,start:-800, end:-146,  indian:false},
-  {name:"Roman Empire",    lat:41.9, lon:12.5,  region:"Mediterranean", res:80,know:70,mil:88,start:-27,  end:476,   indian:false},
-  {name:"Han China",       lat:35.0, lon:105.0, region:"East Asia",     res:88,know:90,mil:85,start:-206, end:220,   indian:false},
-  {name:"Maya",            lat:16.0, lon:-89.0, region:"Mesoamerica",   res:70,know:88,mil:65,start:250,  end:900,   indian:false},
-  {name:"Persian Empire",  lat:32.0, lon:53.0,  region:"Middle East",   res:85,know:75,mil:90,start:-550, end:-330,  indian:false},
-  {name:"Byzantine",       lat:41.0, lon:29.0,  region:"Mediterranean", res:75,know:80,mil:78,start:330,  end:1453,  indian:false},
-  {name:"Aztec",           lat:19.4, lon:-99.1, region:"Mesoamerica",   res:72,know:80,mil:85,start:1300, end:1521,  indian:false},
-  {name:"Mongol Empire",   lat:47.0, lon:106.0, region:"Central Asia",  res:65,know:60,mil:98,start:1206, end:1368,  indian:false},
-  {name:"Ottoman Empire",  lat:39.9, lon:32.9,  region:"Middle East",   res:80,know:72,mil:88,start:1299, end:1922,  indian:false},
-  {name:"Inca",            lat:-13.5,lon:-72.0, region:"South America", res:78,know:75,mil:82,start:1400, end:1533,  indian:false},
+const API = 'http://localhost:8080';
+let apiOnline = false;
 
-  // ── Indian & South Asian civilizations (expanded) ──
-  {name:"Indus Valley",    lat:27.0, lon:68.0,  region:"South Asia",    res:88,know:85,mil:60,start:-3300,end:-1300, indian:true},
-  {name:"Vedic India",     lat:28.0, lon:77.0,  region:"South Asia",    res:75,know:92,mil:70,start:-1500,end:-600,  indian:true},
-  {name:"Maurya Empire",   lat:25.0, lon:83.0,  region:"South Asia",    res:85,know:88,mil:85,start:-322, end:-185,  indian:true},
-  {name:"Gupta Empire",    lat:24.5, lon:82.5,  region:"South Asia",    res:85,know:95,mil:78,start:320,  end:550,   indian:true},
-  {name:"Chola Dynasty",   lat:10.8, lon:79.7,  region:"South India",   res:82,know:88,mil:86,start:300,  end:1279,  indian:true},
-  {name:"Vijayanagara",    lat:15.3, lon:76.5,  region:"South India",   res:80,know:85,mil:84,start:1336, end:1646,  indian:true},
-  {name:"Maratha Empire",  lat:18.5, lon:73.8,  region:"South Asia",    res:78,know:75,mil:92,start:1674, end:1818,  indian:true},
-  {name:"Delhi Sultanate", lat:28.6, lon:77.2,  region:"South Asia",    res:76,know:72,mil:88,start:1206, end:1526,  indian:true},
-  {name:"Mughal Empire",   lat:27.2, lon:78.0,  region:"South Asia",    res:90,know:88,mil:90,start:1526, end:1857,  indian:true},
-  {name:"Pallava Dynasty", lat:12.8, lon:79.7,  region:"South India",   res:78,know:87,mil:80,start:275,  end:897,   indian:true},
-  {name:"Satavahana",      lat:17.0, lon:79.5,  region:"South Asia",    res:80,know:82,mil:78,start:-230, end:220,   indian:true},
-  {name:"Kushana Empire",  lat:34.0, lon:67.0,  region:"Central Asia",  res:82,know:80,mil:85,start:30,   end:375,   indian:true},
-  {name:"Rashtrakuta",     lat:17.3, lon:76.8,  region:"South India",   res:79,know:84,mil:83,start:753,  end:982,   indian:true},
-  {name:"Pala Empire",     lat:25.6, lon:85.1,  region:"South Asia",    res:77,know:90,mil:76,start:750,  end:1161,  indian:true},
-  {name:"Chera Kingdom",   lat:10.5, lon:76.2,  region:"South India",   res:83,know:82,mil:75,start:-300, end:1102,  indian:true},
-];
-const BUILTIN_COUNT = BUILTIN.length;
-let civilizations = [...BUILTIN];
+// Indian civilization names (for styling)
+const INDIAN_NAMES = new Set([
+  'Indus Valley','Vedic India','Maurya Empire','Gupta Empire','Chola Dynasty',
+  'Vijayanagara','Maratha Empire','Delhi Sultanate','Mughal Empire',
+  'Pallava Dynasty','Satavahana','Kushana Empire','Rashtrakuta','Pala Empire','Chera Kingdom'
+]);
 
-const COLORS_GLOBAL = ['#00b4d8','#f4a261','#4ade80','#f87171','#a78bfa','#34d399','#fb923c','#60a5fa','#e879f9','#fbbf24','#2dd4bf','#f43f5e'];
-const COLORS_INDIAN = ['#fb923c','#f97316','#ea580c','#c2410c','#fbbf24','#f59e0b','#d97706','#ef4444','#dc2626','#ff6b35','#ff8c42','#ffa07a','#ff7043','#ff5722','#e64a19'];
+const BUILTIN_COUNT_KEY = 'civ_builtin_count';
+const STORAGE_KEY = 'civ_mapper_custom_v2';
+const COLORS_GLOBAL = ['#00b4d8','#4ade80','#a78bfa','#34d399','#60a5fa','#e879f9','#2dd4bf','#f43f5e','#818cf8'];
+const COLORS_INDIAN = ['#fb923c','#f97316','#ea580c','#fbbf24','#f59e0b','#ef4444','#ff6b35','#ff8c42','#ffa07a','#ff7043'];
 
 const REGIONS = [
   {label:"South Asia",    border:"#f97316",bounds:[[5,60],[37,97]]},
@@ -454,340 +385,391 @@ const REGIONS = [
   {label:"South America", border:"#2dd4bf",bounds:[[-25,-80],[0,-60]]},
 ];
 
-function score(c){return +((c.res+c.know+c.mil)/3).toFixed(2);}
-function yearLabel(y){return y===0?'Unknown':`${Math.abs(y)} ${y<0?'BCE':'CE'}`;}
+let civilizations = [];
+let customCivs = [];
+
+function score(c){ return +((c.resource_density+c.knowledge_density+c.military_strength)/3).toFixed(2); }
+function isIndian(c){ return INDIAN_NAMES.has(c.name) || c.region==='South India'; }
 
 // ════════════════════════════════════════════════
-//  KD-TREE
+//  API LAYER — all data comes from C++ via fetch()
 // ════════════════════════════════════════════════
-class KDNode{constructor(c){this.civ=c;this.left=this.right=null;}}
-class KDTree{
-  constructor(){this.root=null;}
-  build(pts,d=0){
-    if(!pts.length)return null;
-    const ax=d%2;pts.sort((a,b)=>ax?a.lon-b.lon:a.lat-b.lat);
-    const m=Math.floor(pts.length/2),nd=new KDNode(pts[m]);
-    nd.left=this.build(pts.slice(0,m),d+1);
-    nd.right=this.build(pts.slice(m+1),d+1);
-    return nd;
-  }
-  rebuild(civs){this.root=this.build([...civs],0);}
-  nearest(lat,lon,node=this.root,best={civ:null,dist:Infinity},d=0){
-    if(!node)return best;
-    const dist=Math.hypot(lat-node.civ.lat,lon-node.civ.lon);
-    if(dist<best.dist){best.dist=dist;best.civ=node.civ;}
-    const ax=d%2,diff=ax?lon-node.civ.lon:lat-node.civ.lat;
-    const[f,s]=diff<0?[node.left,node.right]:[node.right,node.left];
-    best=this.nearest(lat,lon,f,best,d+1);
-    if(Math.abs(diff)<best.dist)best=this.nearest(lat,lon,s,best,d+1);
-    return best;
-  }
-  range(latMin,latMax,lonMin,lonMax,node=this.root,res=[],d=0){
-    if(!node)return res;
-    const{lat,lon}=node.civ;
-    if(lat>=latMin&&lat<=latMax&&lon>=lonMin&&lon<=lonMax)res.push(node.civ);
-    const ax=d%2,minV=ax?lonMin:latMin,maxV=ax?lonMax:latMax,nV=ax?lon:lat;
-    if(minV<=nV)this.range(latMin,latMax,lonMin,lonMax,node.left,res,d+1);
-    if(maxV>=nV)this.range(latMin,latMax,lonMin,lonMax,node.right,res,d+1);
-    return res;
-  }
-}
-const kdTree=new KDTree();
 
-function rebuildTree(){
-  kdTree.rebuild(civilizations);
-  const indian=civilizations.filter(c=>c.indian).length;
-  document.getElementById('statusKD').textContent=civilizations.length+' nodes';
-  document.getElementById('statusCount').textContent=civilizations.length+' civilizations';
-  document.getElementById('statusIndian').textContent=indian+' civilizations';
-  document.getElementById('nLabel').textContent=civilizations.length;
+async function apiFetch(endpoint) {
+  const res = await fetch(API + endpoint);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
-function rtreeQuery(lat,lon){
-  return REGIONS.filter(r=>lat>=r.bounds[0][0]&&lat<=r.bounds[1][0]&&lon>=r.bounds[0][1]&&lon<=r.bounds[1][1]).map(r=>r.label);
+async function checkAPIConnection() {
+  const banner  = document.getElementById('apiBanner');
+  const dot     = document.getElementById('apiDot');
+  const text    = document.getElementById('apiStatusText');
+  const epList  = document.getElementById('apiEndpointList');
+
+  banner.className = 'checking';
+  dot.style.background = '#c9a84c';
+  text.innerHTML = '<span class="spinner"></span>Connecting to C++ REST API at http://localhost:8080...';
+  epList.textContent = '';
+
+  try {
+    const data = await apiFetch('/');
+    apiOnline = true;
+    banner.className = 'connected';
+    dot.className = 'api-dot';
+    dot.style.background = '#4ade80';
+    text.innerHTML = '✅ <strong>Python REST API is running</strong> — all queries are live from your backend (KD-Tree + R-Tree)';
+    epList.innerHTML = 'Endpoints: ' + (data.endpoints||[]).map(e=>`<span style="color:#c9a84c">${e}</span>`).join('  ·  ');
+    setButtonsEnabled(true);
+    await loadAllData();
+  } catch(e) {
+    apiOnline = false;
+    banner.className = 'offline';
+    dot.className = 'api-dot';
+    dot.style.background = '#f87171';
+    text.innerHTML = `⚠️ <strong>Python server not running.</strong> Start it in your terminal:
+      <code style="background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;color:#fbbf24">python server.py</code>`;
+    epList.innerHTML = `<span style="color:#f87171">Run: python server.py — then click Retry</span>`;
+    setButtonsEnabled(false);
+    loadFallbackData();
+  }
 }
 
-// ════════════════════════════════════════════════
-//  LEAFLET MAP
-// ════════════════════════════════════════════════
-let lmap,markersLayer,regionsLayer,regionVisible=true,mapMode='nearest';
-let clickMarker=null,rangeRect=null,markerRefs={};
-
-function initMap(){
-  lmap=L.map('leafletMap',{center:[22,78],zoom:4,minZoom:1,maxZoom:14,zoomControl:true});
-
-  // CARTO Dark Matter tiles — no API key
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-    subdomains:'abcd',maxZoom:19
-  }).addTo(lmap);
-
-  regionsLayer=L.layerGroup().addTo(lmap);
-  markersLayer=L.layerGroup().addTo(lmap);
-
-  drawRegions();
-  drawMarkers();
-  buildLegend();
-
-  lmap.on('click',function(e){
-    const lat=+e.latlng.lat.toFixed(4),lon=+e.latlng.lng.toFixed(4);
-    if(clickMarker){lmap.removeLayer(clickMarker);clickMarker=null;}
-
-    if(mapMode==='nearest'){
-      const{civ,dist}=kdTree.nearest(lat,lon);
-      // Animated query marker
-      clickMarker=L.circleMarker([lat,lon],{radius:7,color:'#fff',weight:2.5,fillColor:'#fff',fillOpacity:.9,pane:'overlayPane'})
-        .addTo(lmap)
-        .bindPopup(`<div class="popup-name">📍 Query Point</div>
-          <div class="popup-row"><span class="popup-label">Clicked</span><span class="popup-val">${lat}°, ${lon}°</span></div>
-          <div class="popup-row"><span class="popup-label">→ Nearest</span><span class="popup-val" style="color:#c9a84c">${civ.name}</span></div>
-          <div class="popup-row"><span class="popup-label">Distance</span><span class="popup-val">~${(dist*111).toFixed(0)} km</span></div>`,
-          {autoPan:false}).openPopup();
-      // Draw line from click to nearest
-      if(rangeRect)lmap.removeLayer(rangeRect);
-      rangeRect=L.polyline([[lat,lon],[civ.lat,civ.lon]],{color:'rgba(255,255,255,0.5)',weight:1.5,dashArray:'4 4'}).addTo(lmap);
-      pulseMarker(civ,false);
-      document.getElementById('mapClickInfo').innerHTML=`🎯 Nearest to (${lat}°, ${lon}°) → <strong style="color:#c9a84c">${civ.name}</strong> · ${civ.region} · ~${(dist*111).toFixed(0)} km`;
-      const out=document.getElementById('queryOutput');
-      out.style.display='block';
-      out.innerHTML=`<span class="hl">MAP CLICK — NEAREST NEIGHBOR</span>\nQuery: (${lat}°, ${lon}°)\n<span class="ok">✔ Nearest: ${civ.name}</span>\nRegion: ${civ.region} | Score: ${score(civ)}\nDistance: ~${(dist*111).toFixed(0)} km | O(log n) KD-Tree`;
+function setButtonsEnabled(enabled) {
+  ['btnQuery','btnAdd'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!enabled) {
+      btn.disabled = true;
+      btn.title = 'Start the C++ server first';
     } else {
-      const regs=rtreeQuery(lat,lon);
-      clickMarker=L.circleMarker([lat,lon],{radius:6,color:'#00b4d8',weight:2,fillColor:'#00b4d8',fillOpacity:.7})
-        .addTo(lmap)
-        .bindPopup(`<div class="popup-name">📍 Point Info</div>
-          <div class="popup-row"><span class="popup-label">Latitude</span><span class="popup-val">${lat}°</span></div>
-          <div class="popup-row"><span class="popup-label">Longitude</span><span class="popup-val">${lon}°</span></div>
-          <div class="popup-row"><span class="popup-label">R-Tree Region</span><span class="popup-val">${regs.length?regs.join(', '):'Open area'}</span></div>`).openPopup();
-      document.getElementById('mapClickInfo').innerHTML=`ℹ️ (${lat}°, ${lon}°) — R-Tree Region: ${regs.length?regs.join(', '):'Open area'}`;
+      btn.disabled = false;
+      btn.title = '';
     }
   });
 }
 
-function makeIcon(color,isCustom,isIndian,size=10){
-  const sz=size,innerDot=isCustom?`<circle cx="${sz}" cy="${sz}" r="${sz*.32}" fill="white" opacity=".75"/>`:'';
-  const ring=isIndian&&!isCustom?`<circle cx="${sz}" cy="${sz}" r="${sz-.5}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width=".8" stroke-dasharray="2 1.5"/>`:'';
-  return L.divIcon({
-    html:`<svg xmlns="http://www.w3.org/2000/svg" width="${sz*2}" height="${sz*2.5}">
-      <filter id="glow${sz}"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <circle cx="${sz}" cy="${sz}" r="${sz-1}" fill="${color}" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" filter="url(#glow${sz})"/>
-      ${ring}${innerDot}
-      <polygon points="${sz},${sz*2.5} ${sz*.55},${sz*1.4} ${sz*1.45},${sz*1.4}" fill="${color}"/>
-    </svg>`,
-    className:'',iconSize:[sz*2,sz*2.5],iconAnchor:[sz,sz*2.5],popupAnchor:[0,-sz*2.2]
-  });
-}
-
-function popupHTML(c,isCustom){
-  const s=score(c),col=s>=85?'#c9a84c':s>=77?'#4ade80':'#f4a261';
-  const bars=[
-    {label:'Resource', val:c.res, color:'#c9a84c'},
-    {label:'Knowledge',val:c.know,color:'#00b4d8'},
-    {label:'Military', val:c.mil, color:'#f87171'},
-  ];
-  return `<div class="popup-name">${c.indian?'🇮🇳 ':''}${c.name}</div>
-    <span class="popup-region-badge">${c.region}</span>
-    ${c.start?`<div class="popup-period">${yearLabel(c.start)} → ${yearLabel(c.end)}</div>`:''}
-    <div class="popup-row"><span class="popup-label">Coordinates</span><span class="popup-val">${c.lat}°, ${c.lon}°</span></div>
-    <div class="popup-bars">
-      ${bars.map(b=>`<div class="popup-bar-row">
-        <span class="popup-bar-label">${b.label}</span>
-        <div class="popup-bar-track"><div class="popup-bar-fill" style="width:${b.val}%;background:${b.color}"></div></div>
-        <span style="font-size:.72rem;color:${b.color};font-weight:700;min-width:22px;text-align:right">${b.val}</span>
-      </div>`).join('')}
-    </div>
-    <div class="popup-score" style="color:${col}">Spatial Score: ${s}</div>
-    ${isCustom?'<div class="popup-custom">★ Custom Added</div>':''}`;
-}
-
-function drawMarkers(){
-  markersLayer.clearLayers();markerRefs={};
-  civilizations.forEach((c,i)=>{
-    const isCustom=i>=BUILTIN_COUNT;
-    const isIndian=c.indian===true;
-    const colArr=isIndian?COLORS_INDIAN:COLORS_GLOBAL;
-    const colIdx=isIndian?civilizations.filter((x,j)=>j<=i&&x.indian).length-1:civilizations.filter((x,j)=>j<=i&&!x.indian).length-1;
-    const col=colArr[colIdx%colArr.length];
-    const sz=isIndian?12:10;
-    const m=L.marker([c.lat,c.lon],{icon:makeIcon(col,isCustom,isIndian,sz),zIndexOffset:isIndian?100:0})
-      .bindPopup(popupHTML(c,isCustom),{maxWidth:260,className:''})
-      .addTo(markersLayer);
-    markerRefs[c.name]=m;
-  });
-}
-
-function drawRegions(){
-  regionsLayer.clearLayers();
-  REGIONS.forEach(r=>{
-    L.rectangle(r.bounds,{
-      color:r.border,weight:1.5,opacity:.55,
-      fillColor:r.border,fillOpacity:.05,dashArray:'6 4'
-    }).bindTooltip(`<span>${r.label}</span>`,{permanent:false,direction:'center'}).addTo(regionsLayer);
-  });
-}
-
-function buildLegend(){
-  document.getElementById('mapLegend').innerHTML=`
-    <div class="legend-item"><div class="legend-dot" style="background:#f97316;border:1px solid rgba(255,255,255,.4)"></div>Indian Civilization</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#00b4d8;border:1px solid rgba(255,255,255,.4)"></div>Global Civilization</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#fff;border:1px dashed #c9a84c"></div>Custom Added</div>
-    <div class="legend-item"><div class="legend-dot" style="background:rgba(201,168,76,.15);border:1px dashed #c9a84c;border-radius:2px;width:14px;height:10px"></div>R-Tree Region</div>
-    <div class="legend-item" style="margin-left:auto;color:var(--text-muted)">Click map → ${mapMode==='nearest'?'Nearest Neighbor':'Point Info'}</div>`;
-}
-
-function pulseMarker(civ,pan=true){
-  const m=markerRefs[civ.name];
-  if(!m)return;
-  if(pan)lmap.setView([civ.lat,civ.lon],Math.max(lmap.getZoom(),5),{animate:true});
-  setTimeout(()=>m.openPopup(),pan?400:200);
-}
-
-function fitAllMarkers(){
-  lmap.fitBounds(L.latLngBounds(civilizations.map(c=>[c.lat,c.lon])),{padding:[30,30]});
-  cleanupTempLayers();
-}
-function focusIndia(){
-  lmap.setView([22,80],5,{animate:true});
-}
-function toggleRegions(){
-  regionVisible=!regionVisible;
-  regionVisible?lmap.addLayer(regionsLayer):lmap.removeLayer(regionsLayer);
-}
-function setMapMode(mode){
-  mapMode=mode;
-  document.getElementById('mapModeLabel').textContent=mode==='nearest'?'Mode: Click → Nearest Neighbor Query':'Mode: Click → Point Info + R-Tree';
-  ['btnNearest','btnInfo'].forEach(id=>{
-    document.getElementById(id).style.borderColor='';document.getElementById(id).style.color='';
-  });
-  const active=mode==='nearest'?'btnNearest':'btnInfo';
-  document.getElementById(active).style.borderColor='#c9a84c';document.getElementById(active).style.color='#c9a84c';
-  buildLegend();
-}
-function cleanupTempLayers(){
-  if(clickMarker){lmap.removeLayer(clickMarker);clickMarker=null;}
-  if(rangeRect){lmap.removeLayer(rangeRect);rangeRect=null;}
-}
-
-// ════════════════════════════════════════════════
-//  QUERY ENGINE
-// ════════════════════════════════════════════════
-function toggleQueryFields(){
-  const qt=document.getElementById('queryType').value;
-  ['nearestFields','rangeFields','compareFields','rtreeFields'].forEach(id=>document.getElementById(id).style.display='none');
-  if(qt==='nearest')document.getElementById('nearestFields').style.display='grid';
-  else if(qt==='range')document.getElementById('rangeFields').style.display='grid';
-  else if(qt==='compare'){document.getElementById('compareFields').style.display='block';populateSelects();}
-  else document.getElementById('rtreeFields').style.display='grid';
-}
-
-function runQuery(){
-  const qt=document.getElementById('queryType').value,out=document.getElementById('queryOutput');
-  out.style.display='block';cleanupTempLayers();let txt='';
-  if(qt==='nearest'){
-    const lat=+document.getElementById('qLat').value,lon=+document.getElementById('qLon').value;
-    const{civ,dist}=kdTree.nearest(lat,lon);
-    txt=`<span class="hl">NEAREST NEIGHBOR QUERY — KD-Tree</span>\nQuery: (${lat}°, ${lon}°)\n<span class="ok">✔ Nearest: ${civ.name}</span>\nRegion: ${civ.region} | Score: ${score(civ)}\nDistance: ~${(dist*111).toFixed(0)} km | O(log n) branch pruning`;
-    pulseMarker(civ);
-  } else if(qt==='range'){
-    const latMin=+document.getElementById('rLatMin').value,latMax=+document.getElementById('rLatMax').value;
-    const lonMin=+document.getElementById('rLonMin').value,lonMax=+document.getElementById('rLonMax').value;
-    const res=kdTree.range(latMin,latMax,lonMin,lonMax);
-    txt=`<span class="hl">RANGE QUERY — KD-Tree Bounding Box</span>\nLat [${latMin}°–${latMax}°]  Lon [${lonMin}°–${lonMax}°]\n<span class="ok">Found ${res.length} civilization(s):</span>\n`
-      +res.map(c=>`  ${c.indian?'🇮🇳':'🌐'} ${c.name.padEnd(22)} Score:${score(c)}  (${c.region})`).join('\n')
-      +`\n\nAlgorithm: O(log n + k) spatial pruning`;
-    rangeRect=L.rectangle([[latMin,lonMin],[latMax,lonMax]],{color:'#c9a84c',weight:2,fillColor:'#c9a84c',fillOpacity:.07,dashArray:'6 3'}).addTo(lmap);
-    lmap.fitBounds([[latMin,lonMin],[latMax,lonMax]],{padding:[30,30]});
-    res.forEach(c=>markerRefs[c.name]&&markerRefs[c.name].openPopup());
-  } else if(qt==='compare'){
-    const a=civilizations[+document.getElementById('cmpA').value],b=civilizations[+document.getElementById('cmpB').value];
-    const dist=Math.hypot(a.lat-b.lat,a.lon-b.lon)*111,winner=score(a)>score(b)?a.name:b.name;
-    txt=`<span class="hl">COMPARATIVE ANALYSIS</span>\n${'Attribute'.padEnd(22)}${a.name.padEnd(22)}${b.name}\n${'-'.repeat(62)}\n${'Latitude'.padEnd(22)}${String(a.lat).padEnd(22)}${b.lat}\n${'Longitude'.padEnd(22)}${String(a.lon).padEnd(22)}${b.lon}\n${'Resource'.padEnd(22)}${String(a.res).padEnd(22)}${b.res}\n${'Knowledge'.padEnd(22)}${String(a.know).padEnd(22)}${b.know}\n${'Military'.padEnd(22)}${String(a.mil).padEnd(22)}${b.mil}\n${'Spatial Score'.padEnd(22)}${String(score(a)).padEnd(22)}${score(b)}\n${'-'.repeat(62)}\n<span class="inf">Distance: ~${dist.toFixed(0)} km</span>\n<span class="ok">Higher Spatial Score: ${winner}</span>`;
-    showComparePanel(a,b);
-    rangeRect=L.polyline([[a.lat,a.lon],[b.lat,b.lon]],{color:'#c9a84c',weight:2,dashArray:'6 4'}).addTo(lmap);
-    lmap.fitBounds([[a.lat,a.lon],[b.lat,b.lon]],{padding:[80,80]});
-    setTimeout(()=>markerRefs[a.name]&&markerRefs[a.name].openPopup(),500);
-  } else {
-    const lat=+document.getElementById('rtLat').value,lon=+document.getElementById('rtLon').value;
-    const regs=rtreeQuery(lat,lon);
-    txt=`<span class="hl">R-TREE POINT QUERY</span>\nQuery: (${lat}°, ${lon}°)\n<span class="ok">Regions: ${regs.length?regs.join(', '):'None (open area)'}</span>\nO(log n) bounding box overlap check`;
-    clickMarker=L.circleMarker([lat,lon],{radius:9,color:'#f4a261',weight:2.5,fillColor:'#f4a261',fillOpacity:.75})
-      .addTo(lmap).bindPopup(`<div class="popup-name">R-Tree Query</div>
-        <div class="popup-row"><span class="popup-label">Point</span><span class="popup-val">${lat}°, ${lon}°</span></div>
-        <div class="popup-row"><span class="popup-label">Region</span><span class="popup-val">${regs.join(', ')||'Open area'}</span></div>`).openPopup();
-    lmap.setView([lat,lon],5,{animate:true});
+async function loadAllData() {
+  try {
+    const [civData, statsData] = await Promise.all([
+      apiFetch('/api/civilizations'),
+      apiFetch('/api/stats')
+    ]);
+    civilizations = civData;
+    // Also merge any locally-added civs that aren't in the backend yet
+    const saved = loadFromStorage();
+    saved.forEach(sc => {
+      if (!civilizations.find(c=>c.name===sc.name)) civilizations.push(sc);
+    });
+    updateStatusBar(statsData);
+    // Small delay ensures Leaflet map is fully initialized before adding markers
+    setTimeout(() => refreshUI(), 200);
+  } catch(e) {
+    console.error('Failed to load data:', e);
   }
-  out.innerHTML=txt;
 }
 
-function clearOutput(){
+function updateStatusBar(stats) {
+  document.getElementById('statusKD').textContent    = stats.kdtree_nodes + ' nodes';
+  document.getElementById('statusRT').textContent    = stats.rtree_regions + ' regions';
+  document.getElementById('statusCount').textContent = stats.total_civilizations + ' civilizations';
+  document.getElementById('statusSpeedup').textContent = stats.speedup + 'x faster than linear';
+  document.getElementById('nLabel').textContent      = stats.total_civilizations;
+  renderComplexity(stats);
+}
+
+// ════════════════════════════════════════════════
+//  QUERY ENGINE — each button calls C++ REST API
+// ════════════════════════════════════════════════
+
+function toggleQueryFields() {
+  const qt = document.getElementById('queryType').value;
+  ['nearestFields','rangeFields','compareFields','rtreeFields'].forEach(id=>document.getElementById(id).style.display='none');
+  if(qt==='nearest')     document.getElementById('nearestFields').style.display='grid';
+  else if(qt==='range')  document.getElementById('rangeFields').style.display='grid';
+  else if(qt==='compare'){document.getElementById('compareFields').style.display='block';populateSelects();}
+  else                   document.getElementById('rtreeFields').style.display='grid';
+}
+
+async function runQuery() {
+  if (!apiOnline) { showOfflineWarning(); return; }
+  const qt  = document.getElementById('queryType').value;
+  const out = document.getElementById('queryOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<span class="spinner"></span> Calling C++ REST API...';
+  cleanupTempLayers();
+
+  try {
+    if (qt === 'nearest') {
+      const lat = +document.getElementById('qLat').value;
+      const lon = +document.getElementById('qLon').value;
+      // ← actual HTTP request to your C++ server
+      const data = await apiFetch(`/api/nearest?lat=${lat}&lon=${lon}`);
+      const c = data.nearest;
+      out.innerHTML =
+        `<span class="hl">GET /api/nearest?lat=${lat}&lon=${lon}</span>\n`+
+        `<span class="hl">← C++ KD-Tree Response:</span>\n`+
+        `<span class="ok">✔ Nearest: ${c.name}</span>\n`+
+        `Region: ${c.region} | Score: ${score(c)}\n`+
+        `Distance: ~${data.distance_km.toFixed(0)} km\n`+
+        `Algorithm: ${data.algorithm}`;
+      pulseMarker(c);
+      if(rangeRect) lmap.removeLayer(rangeRect);
+      rangeRect = L.polyline([[lat,lon],[c.latitude,c.longitude]],{color:'rgba(255,255,255,0.5)',weight:1.5,dashArray:'4 4'}).addTo(lmap);
+
+    } else if (qt === 'range') {
+      const latMin=+document.getElementById('rLatMin').value, latMax=+document.getElementById('rLatMax').value;
+      const lonMin=+document.getElementById('rLonMin').value, lonMax=+document.getElementById('rLonMax').value;
+      // ← actual HTTP request to your C++ server
+      const data = await apiFetch(`/api/range?latMin=${latMin}&latMax=${latMax}&lonMin=${lonMin}&lonMax=${lonMax}`);
+      out.innerHTML =
+        `<span class="hl">GET /api/range?latMin=${latMin}&latMax=${latMax}&lonMin=${lonMin}&lonMax=${lonMax}</span>\n`+
+        `<span class="hl">← C++ KD-Tree Response:</span>\n`+
+        `<span class="ok">Found ${data.count} civilization(s):</span>\n`+
+        data.results.map(c=>`  ${isIndian(c)?'🇮🇳':'🌐'} ${c.name.padEnd(22)} Score:${score(c)}  (${c.region})`).join('\n')+
+        `\n\nAlgorithm: ${data.algorithm}`;
+      rangeRect = L.rectangle([[latMin,lonMin],[latMax,lonMax]],{color:'#c9a84c',weight:2,fillColor:'#c9a84c',fillOpacity:.07,dashArray:'6 3'}).addTo(lmap);
+      lmap.fitBounds([[latMin,lonMin],[latMax,lonMax]],{padding:[30,30]});
+
+    } else if (qt === 'compare') {
+      const nameA = document.getElementById('cmpA').options[document.getElementById('cmpA').selectedIndex].text.replace('🇮🇳 ','');
+      const nameB = document.getElementById('cmpB').options[document.getElementById('cmpB').selectedIndex].text.replace('🇮🇳 ','');
+      // ← actual HTTP request to your C++ server
+      const data = await apiFetch(`/api/compare?a=${encodeURIComponent(nameA)}&b=${encodeURIComponent(nameB)}`);
+      const a=data.civilization_a, b=data.civilization_b;
+      out.innerHTML =
+        `<span class="hl">GET /api/compare?a=${nameA}&b=${nameB}</span>\n`+
+        `<span class="hl">← C++ Response:</span>\n`+
+        `${'Attribute'.padEnd(22)}${a.name.padEnd(22)}${b.name}\n${'-'.repeat(62)}\n`+
+        `${'Latitude'.padEnd(22)}${String(a.latitude).padEnd(22)}${b.latitude}\n`+
+        `${'Resource'.padEnd(22)}${String(a.resource_density).padEnd(22)}${b.resource_density}\n`+
+        `${'Knowledge'.padEnd(22)}${String(a.knowledge_density).padEnd(22)}${b.knowledge_density}\n`+
+        `${'Military'.padEnd(22)}${String(a.military_strength).padEnd(22)}${b.military_strength}\n`+
+        `${'Spatial Score'.padEnd(22)}${String(data.score_a).padEnd(22)}${data.score_b}\n${'-'.repeat(62)}\n`+
+        `<span class="inf">Distance: ~${data.distance_km.toFixed(0)} km</span>\n`+
+        `<span class="ok">Winner: ${data.winner}</span>`;
+      showComparePanel(a, b, data);
+      rangeRect = L.polyline([[a.latitude,a.longitude],[b.latitude,b.longitude]],{color:'#c9a84c',weight:2,dashArray:'6 4'}).addTo(lmap);
+      lmap.fitBounds([[a.latitude,a.longitude],[b.latitude,b.longitude]],{padding:[80,80]});
+
+    } else {
+      const lat=+document.getElementById('rtLat').value, lon=+document.getElementById('rtLon').value;
+      // ← actual HTTP request to your C++ server
+      const data = await apiFetch(`/api/rtree?lat=${lat}&lon=${lon}`);
+      out.innerHTML =
+        `<span class="hl">GET /api/rtree?lat=${lat}&lon=${lon}</span>\n`+
+        `<span class="hl">← C++ R-Tree Response:</span>\n`+
+        `<span class="ok">Regions: ${data.regions.length?data.regions.join(', '):'Open area'}</span>\n`+
+        `Algorithm: ${data.algorithm}`;
+      if(clickMarker) lmap.removeLayer(clickMarker);
+      clickMarker = L.circleMarker([lat,lon],{radius:9,color:'#f4a261',weight:2.5,fillColor:'#f4a261',fillOpacity:.75})
+        .addTo(lmap).bindPopup(`<div class="popup-name">R-Tree Query</div>
+          <div class="popup-row"><span class="popup-label">Region</span><span class="popup-val">${data.regions.join(', ')||'Open area'}</span></div>`).openPopup();
+      lmap.setView([lat,lon],5,{animate:true});
+    }
+  } catch(e) {
+    out.innerHTML = `<span class="err">⚠️ API Error: ${e.message}\nMake sure the C++ server is running.</span>`;
+  }
+}
+
+function showOfflineWarning() {
+  const out = document.getElementById('queryOutput');
+  out.style.display = 'block';
+  out.innerHTML = `<span class="err">⚠️ Python server is not running.\n\nStart it:\n  python server.py\n\nThen click Retry in the banner above.</span>`;
+}
+
+function clearOutput() {
   document.getElementById('queryOutput').style.display='none';
   document.getElementById('comparePanel').style.display='none';
   cleanupTempLayers();
 }
 
-function showComparePanel(a,b){
+function showComparePanel(a, b, data) {
   document.getElementById('comparePanel').style.display='block';
   const attrs=['Resource','Knowledge','Military'];
+  const aVals=[a.resource_density,a.knowledge_density,a.military_strength];
+  const bVals=[b.resource_density,b.knowledge_density,b.military_strength];
   document.getElementById('compareContent').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
-    <div><div style="font-size:1rem;color:var(--gold);margin-bottom:1rem;font-family:Cinzel,serif">${a.indian?'🇮🇳 ':''}${a.name}</div>
-      ${attrs.map((attr,i)=>`<div class="bar-row"><span class="bar-label" style="width:100px">${attr} Density</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${[a.res,a.know,a.mil][i]}%;background:#c9a84c"></div></div>
-        <span class="bar-val">${[a.res,a.know,a.mil][i]}</span></div>`).join('')}
-      <div style="margin-top:1rem;font-size:1.5rem;color:var(--gold);font-weight:700">Score: ${score(a)}</div></div>
-    <div><div style="font-size:1rem;color:var(--accent-teal);margin-bottom:1rem;font-family:Cinzel,serif">${b.indian?'🇮🇳 ':''}${b.name}</div>
-      ${attrs.map((attr,i)=>`<div class="bar-row"><span class="bar-label" style="width:100px">${attr} Density</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${[b.res,b.know,b.mil][i]}%;background:#00b4d8"></div></div>
-        <span class="bar-val">${[b.res,b.know,b.mil][i]}</span></div>`).join('')}
-      <div style="margin-top:1rem;font-size:1.5rem;color:var(--accent-teal);font-weight:700">Score: ${score(b)}</div></div>
+    <div><div style="font-size:1rem;color:var(--gold);margin-bottom:1rem;font-family:Cinzel,serif">${isIndian(a)?'🇮🇳 ':''}${a.name}</div>
+      ${attrs.map((attr,i)=>`<div class="bar-row"><span class="bar-label">${attr}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${aVals[i]}%;background:#c9a84c"></div></div>
+        <span class="bar-val">${aVals[i]}</span></div>`).join('')}
+      <div style="margin-top:1rem;font-size:1.5rem;color:var(--gold);font-weight:700">Score: ${data.score_a}</div></div>
+    <div><div style="font-size:1rem;color:var(--accent-teal);margin-bottom:1rem;font-family:Cinzel,serif">${isIndian(b)?'🇮🇳 ':''}${b.name}</div>
+      ${attrs.map((attr,i)=>`<div class="bar-row"><span class="bar-label">${attr}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${bVals[i]}%;background:#00b4d8"></div></div>
+        <span class="bar-val">${bVals[i]}</span></div>`).join('')}
+      <div style="margin-top:1rem;font-size:1.5rem;color:var(--accent-teal);font-weight:700">Score: ${data.score_b}</div></div>
   </div>`;
   document.getElementById('comparePanel').scrollIntoView({behavior:'smooth'});
 }
 
 // ════════════════════════════════════════════════
-//  TABLE
+//  LEAFLET MAP — map clicks also call REST API
 // ════════════════════════════════════════════════
-function renderTable(){
-  const body=document.getElementById('civTableBody');body.innerHTML='';
-  [...civilizations].sort((a,b)=>score(b)-score(a)).forEach(c=>{
-    const s=score(c),isCustom=civilizations.indexOf(c)>=BUILTIN_COUNT,isIndian=c.indian;
+let lmap, markersLayer, regionsLayer, regionVisible=true, mapMode='nearest';
+let clickMarker=null, rangeRect=null, markerRefs={};
+
+function initMap() {
+  lmap = L.map('leafletMap',{center:[22,78],zoom:4,minZoom:1,maxZoom:14});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    subdomains:'abcd',maxZoom:19
+  }).addTo(lmap);
+  regionsLayer = L.layerGroup().addTo(lmap);
+  markersLayer = L.layerGroup().addTo(lmap);
+  drawRegions();
+
+  lmap.on('click', async function(e) {
+    const lat = +e.latlng.lat.toFixed(4), lon = +e.latlng.lng.toFixed(4);
+    if(clickMarker){lmap.removeLayer(clickMarker);clickMarker=null;}
+
+    if (mapMode === 'nearest') {
+      document.getElementById('mapClickInfo').innerHTML = `<span class="spinner"></span> Calling GET /api/nearest?lat=${lat}&lon=${lon}...`;
+      if (!apiOnline) { document.getElementById('mapClickInfo').innerHTML = '⚠️ C++ server not running'; return; }
+      try {
+        // ← live HTTP call to C++ on every map click
+        const data = await apiFetch(`/api/nearest?lat=${lat}&lon=${lon}`);
+        const c = data.nearest;
+        clickMarker = L.circleMarker([lat,lon],{radius:7,color:'#fff',weight:2.5,fillColor:'#fff',fillOpacity:.9})
+          .addTo(lmap)
+          .bindPopup(`<div class="popup-name">📍 Query Point</div>
+            <div class="popup-row"><span class="popup-label">Coords</span><span class="popup-val">${lat}°, ${lon}°</span></div>
+            <div class="popup-row"><span class="popup-label">→ Nearest</span><span class="popup-val" style="color:#c9a84c">${c.name}</span></div>
+            <div class="popup-row"><span class="popup-label">Distance</span><span class="popup-val">~${data.distance_km.toFixed(0)} km</span></div>`,{autoPan:false}).openPopup();
+        if(rangeRect) lmap.removeLayer(rangeRect);
+        rangeRect = L.polyline([[lat,lon],[c.latitude,c.longitude]],{color:'rgba(255,255,255,0.4)',weight:1.5,dashArray:'4 4'}).addTo(lmap);
+        pulseMarker(c, false);
+        document.getElementById('mapClickInfo').innerHTML = `🎯 /api/nearest → <strong style="color:#c9a84c">${c.name}</strong> · ${c.region} · ~${data.distance_km.toFixed(0)} km`;
+      } catch(err) {
+        document.getElementById('mapClickInfo').innerHTML = `⚠️ API error: ${err.message}`;
+      }
+    } else {
+      if (!apiOnline) return;
+      const data = await apiFetch(`/api/rtree?lat=${lat}&lon=${lon}`);
+      clickMarker = L.circleMarker([lat,lon],{radius:6,color:'#00b4d8',weight:2,fillColor:'#00b4d8',fillOpacity:.7})
+        .addTo(lmap)
+        .bindPopup(`<div class="popup-name">📍 Point Info</div>
+          <div class="popup-row"><span class="popup-label">Coords</span><span class="popup-val">${lat}°, ${lon}°</span></div>
+          <div class="popup-row"><span class="popup-label">R-Tree Region</span><span class="popup-val">${data.regions.length?data.regions.join(', '):'Open area'}</span></div>`).openPopup();
+      document.getElementById('mapClickInfo').innerHTML = `ℹ️ /api/rtree → Region: ${data.regions.length?data.regions.join(', '):'Open area'}`;
+    }
+  });
+}
+
+function makeIcon(color, isCustom, sz=10) {
+  const dot = isCustom ? `<circle cx="${sz}" cy="${sz}" r="${sz*.3}" fill="white" opacity=".75"/>` : '';
+  return L.divIcon({
+    html:`<svg xmlns="http://www.w3.org/2000/svg" width="${sz*2}" height="${sz*2.5}">
+      <circle cx="${sz}" cy="${sz}" r="${sz-1}" fill="${color}" stroke="rgba(255,255,255,0.75)" stroke-width="1.2"/>
+      ${dot}<polygon points="${sz},${sz*2.5} ${sz*.55},${sz*1.4} ${sz*1.45},${sz*1.4}" fill="${color}"/>
+    </svg>`,
+    className:'',iconSize:[sz*2,sz*2.5],iconAnchor:[sz,sz*2.5],popupAnchor:[0,-sz*2.2]
+  });
+}
+
+function popupHTML(c, isCustom) {
+  const s = score(c), col = s>=85?'#c9a84c':s>=77?'#4ade80':'#f4a261';
+  const bars = [{label:'Resource',val:c.resource_density,color:'#c9a84c'},{label:'Knowledge',val:c.knowledge_density,color:'#00b4d8'},{label:'Military',val:c.military_strength,color:'#f87171'}];
+  return `<div class="popup-name">${isIndian(c)?'🇮🇳 ':''}${c.name}</div>
+    <div class="popup-row"><span class="popup-label">Region</span><span class="popup-val">${c.region}</span></div>
+    <div class="popup-row"><span class="popup-label">Coords</span><span class="popup-val">${c.latitude}°, ${c.longitude}°</span></div>
+    ${c.start_year?`<div class="popup-row"><span class="popup-label">Period</span><span class="popup-val">${Math.abs(c.start_year)} ${c.start_year<0?'BCE':'CE'} – ${Math.abs(c.end_year)} ${c.end_year<0?'BCE':'CE'}</span></div>`:''}
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">
+      ${bars.map(b=>`<div class="popup-bar-row"><span class="popup-bar-label">${b.label}</span>
+        <div class="popup-bar-track"><div class="popup-bar-fill" style="width:${b.val}%;background:${b.color}"></div></div>
+        <span style="font-size:.72rem;color:${b.color};font-weight:700;min-width:22px;text-align:right">${b.val}</span></div>`).join('')}
+    </div>
+    <div class="popup-score" style="color:${col}">Spatial Score: ${s}</div>
+    ${isCustom?'<div style="font-size:.7rem;color:#00b4d8;text-align:center;margin-top:4px">★ Custom Added</div>':''}`;
+}
+
+function drawMarkers() {
+  markersLayer.clearLayers(); markerRefs = {};
+  let gi=0, ii=0;
+  civilizations.forEach((c,idx) => {
+    const ind = isIndian(c);
+    const isCustom = idx >= (civilizations.length - customCivs.length);
+    const col = ind ? COLORS_INDIAN[ii++%COLORS_INDIAN.length] : COLORS_GLOBAL[gi++%COLORS_GLOBAL.length];
+    const m = L.marker([c.latitude, c.longitude], {icon: makeIcon(col, isCustom, ind?12:10), zIndexOffset: ind?100:0})
+      .bindPopup(popupHTML(c, isCustom), {maxWidth:260})
+      .addTo(markersLayer);
+    markerRefs[c.name] = m;
+  });
+}
+
+function drawRegions() {
+  regionsLayer.clearLayers();
+  REGIONS.forEach(r => {
+    L.rectangle(r.bounds, {color:r.border,weight:1.5,opacity:.55,fillColor:r.border,fillOpacity:.05,dashArray:'6 4'})
+      .bindTooltip(`<span>${r.label}</span>`,{permanent:false,direction:'center'}).addTo(regionsLayer);
+  });
+}
+
+function pulseMarker(c, pan=true) {
+  const key = c.name || c;
+  const m = markerRefs[key];
+  if(!m) return;
+  if(pan) lmap.setView([c.latitude||c.lat, c.longitude||c.lon], Math.max(lmap.getZoom(),5), {animate:true});
+  setTimeout(() => m.openPopup(), pan?400:200);
+}
+
+function fitAllMarkers() {
+  if(!civilizations.length) return;
+  lmap.fitBounds(L.latLngBounds(civilizations.map(c=>[c.latitude,c.longitude])),{padding:[30,30]});
+  cleanupTempLayers();
+}
+function focusIndia() { lmap.setView([22,80],5,{animate:true}); }
+function toggleRegions() { regionVisible=!regionVisible; regionVisible?lmap.addLayer(regionsLayer):lmap.removeLayer(regionsLayer); }
+function setMapMode(mode) {
+  mapMode = mode;
+  document.getElementById('mapModeLabel').textContent = mode==='nearest' ? 'Mode: Click → /api/nearest' : 'Mode: Click → /api/rtree';
+  ['btnNearest','btnInfo'].forEach(id => { document.getElementById(id).style.borderColor=''; document.getElementById(id).style.color=''; });
+  const a = mode==='nearest'?'btnNearest':'btnInfo';
+  document.getElementById(a).style.borderColor='#c9a84c'; document.getElementById(a).style.color='#c9a84c';
+}
+function cleanupTempLayers() {
+  if(clickMarker){lmap.removeLayer(clickMarker);clickMarker=null;}
+  if(rangeRect){lmap.removeLayer(rangeRect);rangeRect=null;}
+}
+
+// ════════════════════════════════════════════════
+//  TABLE / HEAT / COMPLEXITY
+// ════════════════════════════════════════════════
+function renderTable() {
+  const body = document.getElementById('civTableBody'); body.innerHTML = '';
+  [...civilizations].sort((a,b)=>score(b)-score(a)).forEach(c => {
+    const s=score(c), ind=isIndian(c);
     const cls=s>=85?'score-high':s>=77?'score-mid':'score-low';
     const tr=document.createElement('tr');
-    if(isCustom)tr.className='custom-row';
-    else if(isIndian)tr.className='indian-row';
-    tr.innerHTML=`<td><strong>${isIndian?'🇮🇳 ':''}${c.name}</strong>${isCustom?' <span style="font-size:.7rem;color:var(--accent-teal)">★</span>':''}</td>
-      <td>${c.region}</td><td>${c.lat.toFixed(1)}°</td><td>${c.lon.toFixed(1)}°</td>
-      <td>${c.res}</td><td>${c.know}</td><td>${c.mil}</td>
+    tr.className = ind ? 'indian-row' : '';
+    tr.innerHTML=`<td><strong>${ind?'🇮🇳 ':''}${c.name}</strong></td>
+      <td>${c.region}</td><td>${(+c.latitude).toFixed(1)}°</td><td>${(+c.longitude).toFixed(1)}°</td>
+      <td>${c.resource_density}</td><td>${c.knowledge_density}</td><td>${c.military_strength}</td>
       <td><span class="score-badge ${cls}">${s}</span></td>`;
-    tr.addEventListener('click',()=>pulseMarker(c));
+    tr.addEventListener('click', () => pulseMarker(c));
     body.appendChild(tr);
   });
 }
 
-// ════════════════════════════════════════════════
-//  HEAT MAP
-// ════════════════════════════════════════════════
-function renderHeat(){
-  const byR={};
-  civilizations.forEach(c=>(byR[c.region]=byR[c.region]||[]).push(score(c)));
-  const entries=Object.entries(byR).map(([r,sc])=>[r,+(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1)]);
-  const mx=Math.max(...entries.map(e=>e[1])),mn=Math.min(...entries.map(e=>e[1]));
-  document.getElementById('heatGrid').innerHTML=entries.sort((a,b)=>b[1]-a[1]).map(([region,avg])=>{
+function renderHeat() {
+  const byR = {};
+  civilizations.forEach(c => (byR[c.region]=byR[c.region]||[]).push(score(c)));
+  const entries = Object.entries(byR).map(([r,sc])=>[r,+(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1)]);
+  const mx=Math.max(...entries.map(e=>e[1])), mn=Math.min(...entries.map(e=>e[1]));
+  document.getElementById('heatGrid').innerHTML = entries.sort((a,b)=>b[1]-a[1]).map(([region,avg])=>{
     const t=(avg-mn)/(mx-mn||1),r=Math.round(180*t+30),g=Math.round(80*(1-t)+40*t);
     return `<div class="heat-cell" style="background:rgba(${r},${g},40,.75);border:1px solid rgba(${r+40},${g+20},40,.5)">
       <div class="heat-name">${region}</div><div class="heat-score">${avg}</div></div>`;
   }).join('');
 }
 
-// ════════════════════════════════════════════════
-//  COMPLEXITY
-// ════════════════════════════════════════════════
-function renderComplexity(){
-  const n=civilizations.length,logN=Math.ceil(Math.log2(n));
+function renderComplexity(stats) {
+  const n=stats.total_civilizations, logN=stats.kdtree_ops;
   document.getElementById('complexityGrid').innerHTML=`
-    <div class="complexity-item"><div class="complexity-big">${n}</div><div class="complexity-method">Linear Search</div><div class="complexity-label">O(n)</div></div>
+    <div class="complexity-item"><div class="complexity-big">${stats.linear_ops}</div><div class="complexity-method">Linear Search</div><div class="complexity-label">O(n)</div></div>
     <div class="complexity-item"><div class="complexity-big">${logN}</div><div class="complexity-method">KD-Tree avg</div><div class="complexity-label">O(log n)</div></div>
-    <div class="complexity-item"><div class="complexity-big">~${logN*2}</div><div class="complexity-method">R-Tree Range</div><div class="complexity-label">O(log n + k)</div></div>`;
-  document.getElementById('perfBars').innerHTML=[
+    <div class="complexity-item"><div class="complexity-big">${stats.speedup}x</div><div class="complexity-method">Speedup</div><div class="complexity-label">KD-Tree vs Linear</div></div>`;
+  document.getElementById('perfBars').innerHTML = [
     {label:'Linear O(n)',val:n,max:n,color:'#f87171'},
     {label:'KD-Tree',val:logN,max:n,color:'#c9a84c'},
     {label:'R-Tree',val:logN*2,max:n,color:'#00b4d8'},
@@ -796,232 +778,184 @@ function renderComplexity(){
     <span class="bar-val">${b.val}</span></div>`).join('');
 }
 
-// ════════════════════════════════════════════════
-//  KD-TREE CANVAS
-// ════════════════════════════════════════════════
-function drawTree(){
+function drawTree() {
   const cv=document.getElementById('treeCanvas');
-  cv.width=cv.offsetWidth;cv.height=320;
+  cv.width=cv.offsetWidth; cv.height=320;
   const ctx=cv.getContext('2d'),W=cv.width,H=320;
-  ctx.fillStyle='#071428';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#071428'; ctx.fillRect(0,0,W,H);
+  if (!civilizations.length) { ctx.fillStyle='#7a8fa6'; ctx.font='14px Rajdhani'; ctx.textAlign='center'; ctx.fillText('Start the C++ server to visualize the KD-Tree',W/2,H/2); return; }
+  // Build a local tree for visualization only
+  function buildViz(pts,d=0){ if(!pts.length)return null; const ax=d%2; pts.sort((a,b)=>ax?a.longitude-b.longitude:a.latitude-b.latitude); const m=Math.floor(pts.length/2),nd={c:pts[m],left:null,right:null}; nd.left=buildViz(pts.slice(0,m),d+1); nd.right=buildViz(pts.slice(m+1),d+1); return nd; }
+  const root=buildViz([...civilizations],0);
   const nodes=[];
-  function collect(node,x,y,spread,d){
-    if(!node)return;nodes.push({node,x,y,d});
-    const cy=y+48,half=spread/2;
-    if(node.left){ctx.strokeStyle='rgba(201,168,76,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-half,cy);ctx.stroke();collect(node.left,x-half,cy,half,d+1);}
-    if(node.right){ctx.strokeStyle='rgba(0,180,216,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+half,cy);ctx.stroke();collect(node.right,x+half,cy,half,d+1);}
-  }
-  if(kdTree.root)collect(kdTree.root,W/2,25,W/2.2,0);
+  function collect(node,x,y,spread,d){ if(!node)return; nodes.push({node,x,y,d}); const cy=y+46,half=spread/2; if(node.left){ctx.strokeStyle='rgba(201,168,76,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-half,cy);ctx.stroke();collect(node.left,x-half,cy,half,d+1);} if(node.right){ctx.strokeStyle='rgba(0,180,216,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+half,cy);ctx.stroke();collect(node.right,x+half,cy,half,d+1);} }
+  collect(root,W/2,25,W/2.2,0);
   nodes.forEach(({node,x,y,d})=>{
-    const isIndian=node.civ.indian;
-    const col=d%2===0?'#c9a84c':'#00b4d8';
-    const fillCol=isIndian?'rgba(249,115,22,.2)':'';
-    if(isIndian){ctx.fillStyle='rgba(249,115,22,.18)';ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.fill();}
-    else{ctx.fillStyle=col+'22';ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.fill();}
-    ctx.strokeStyle=isIndian?'#f97316':col;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle='#e8e0d0';ctx.font='bold 6px Rajdhani';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(node.civ.name.split(' ')[0].slice(0,7),x,y);
+    const ind=isIndian(node.c),col=d%2===0?'#c9a84c':'#00b4d8';
+    ctx.fillStyle=ind?'rgba(249,115,22,.18)':col+'22'; ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=ind?'#f97316':col; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#e8e0d0'; ctx.font='bold 6px Rajdhani'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(node.c.name.split(' ')[0].slice(0,7),x,y);
   });
-  ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  ctx.fillStyle='rgba(201,168,76,.6)';ctx.font='10px Rajdhani';ctx.fillText('● Lat-axis splits',10,H-38);
-  ctx.fillStyle='rgba(0,180,216,.6)';ctx.fillText('● Lon-axis splits',10,H-24);
-  ctx.fillStyle='rgba(249,115,22,.8)';ctx.fillText('● Indian civilization',10,H-10);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillStyle='rgba(201,168,76,.6)'; ctx.font='10px Rajdhani'; ctx.fillText('● Lat-axis',10,H-26);
+  ctx.fillStyle='rgba(0,180,216,.6)';  ctx.fillText('● Lon-axis',10,H-13);
 }
 
-function populateSelects(){
+function populateSelects() {
   ['cmpA','cmpB'].forEach((id,i)=>{
-    document.getElementById(id).innerHTML=civilizations.map((c,j)=>`<option value="${j}"${j===i?' selected':''}>${c.indian?'🇮🇳 ':''}${c.name}</option>`).join('');
+    document.getElementById(id).innerHTML=civilizations.map((c,j)=>`<option value="${j}"${j===i?' selected':''}>${isIndian(c)?'🇮🇳 ':''}${c.name}</option>`).join('');
   });
 }
 
 // ════════════════════════════════════════════════
-//  STORAGE
+//  ADD CIVILIZATION (stored locally until CSV export)
 // ════════════════════════════════════════════════
-const SK='civ_mapper_custom_v2';
-function saveToStorage(){
-  try{
-    localStorage.setItem(SK,JSON.stringify(civilizations.slice(BUILTIN_COUNT)));
-    document.getElementById('storageStatus').innerHTML=`💾 <span style="color:#4ade80">${civilizations.length-BUILTIN_COUNT} custom civilization(s) saved.</span>`;
-  }catch(e){document.getElementById('storageStatus').innerHTML='⚠️ Storage unavailable.';}
-}
-function loadFromStorage(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):[];}catch(e){return[];}}
-function exportCSV(){
-  const rows=civilizations.map(c=>`${c.name},${c.lat},${c.lon},${c.start||0},${c.end||0},${c.region},${c.res},${c.know},${c.mil}`);
-  const blob=new Blob([['name,latitude,longitude,start_year,end_year,region,resource_density,knowledge_density,military_strength',...rows].join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='civilizations.csv';a.click();
-  const out=document.getElementById('addOutput');out.style.display='block';
-  out.innerHTML=`<span class="ok">✔ CSV downloaded — ${civilizations.length} civilizations total.</span>\nReplace civilizations.csv, then:\ng++ -std=c++17 -o civilization_mapper civilization_mapper.cpp`;
-}
-function clearCustomCivs(){
-  const n=civilizations.length-BUILTIN_COUNT;
-  if(n===0){document.getElementById('storageStatus').innerHTML='ℹ️ No custom civilizations to clear.';return;}
-  if(!confirm(`Remove ${n} custom civilization(s)?`))return;
-  civilizations=civilizations.slice(0,BUILTIN_COUNT);
-  localStorage.removeItem(SK);refreshAll();
-  document.getElementById('storageStatus').innerHTML='🗑️ Custom civilizations cleared.';
-}
-function addCivilization(){
+function addCivilization() {
   const name=document.getElementById('civName').value.trim();
-  const lat=+document.getElementById('civLat').value;
-  const lon=+document.getElementById('civLon').value;
+  const lat=+document.getElementById('civLat').value, lon=+document.getElementById('civLon').value;
   const region=document.getElementById('civRegion').value.trim()||'Unknown';
-  const res=+document.getElementById('civRes').value||75;
-  const know=+document.getElementById('civKnow').value||75;
-  const mil=+document.getElementById('civMil').value||75;
-  if(!name||isNaN(lat)||isNaN(lon)){alert('Enter Name, Latitude, and Longitude.');return;}
+  const res=+document.getElementById('civRes').value||75, know=+document.getElementById('civKnow').value||75, mil=+document.getElementById('civMil').value||75;
+  if(!name||isNaN(lat)||isNaN(lon)){alert('Enter Name, Latitude, Longitude.');return;}
   if(civilizations.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert(`"${name}" already exists.`);return;}
-  const civ={name,lat,lon,region,res,know,mil,start:0,end:0,indian:false};
+  const civ={name,latitude:lat,longitude:lon,start_year:0,end_year:0,region,resource_density:res,knowledge_density:know,military_strength:mil};
   civilizations.push(civ);
-  saveToStorage();refreshAll();
+  customCivs.push(civ);
+  saveToStorage();
+  refreshUI();
   lmap.setView([lat,lon],6,{animate:true});
   setTimeout(()=>markerRefs[name]&&markerRefs[name].openPopup(),600);
-  const out=document.getElementById('addOutput');out.style.display='block';
-  out.innerHTML=`<span class="ok">✔ ${name} inserted into KD-Tree!</span>\n(${lat}°, ${lon}°) | ${region} | Score: ${score(civ)}\n<span class="hl">💾 Saved to browser storage. Export CSV to sync C++ backend.</span>`;
+  const out=document.getElementById('addOutput'); out.style.display='block';
+  out.innerHTML=`<span class="ok">✔ ${name} added to frontend KD-Tree.</span>\nScore: ${score(civ)}\n<span class="inf">⚠ To add to C++ backend: Export CSV → restart server.</span>`;
   ['civName','civLat','civLon','civRegion','civRes','civKnow','civMil'].forEach(id=>document.getElementById(id).value='');
 }
-function refreshAll(){
-  rebuildTree();drawMarkers();renderTable();renderHeat();renderComplexity();populateSelects();drawTree();
+
+// ════════════════════════════════════════════════
+//  STORAGE + CSV EXPORT
+// ════════════════════════════════════════════════
+const SK='civ_mapper_custom_v2';
+function saveToStorage(){ try{ localStorage.setItem(SK,JSON.stringify(customCivs)); document.getElementById('storageStatus').innerHTML=`💾 <span style="color:#4ade80">${customCivs.length} custom civilization(s) saved in browser.</span>`; }catch(e){} }
+function loadFromStorage(){ try{ const r=localStorage.getItem(SK); return r?JSON.parse(r):[]; }catch(e){return[];} }
+function clearCustomCivs(){
+  const n=customCivs.length; if(!n){document.getElementById('storageStatus').innerHTML='ℹ️ No custom civs.';return;}
+  if(!confirm(`Remove ${n} custom civilization(s)?`))return;
+  customCivs=[]; civilizations=civilizations.filter(c=>!customCivs.includes(c));
+  localStorage.removeItem(SK);
+  loadAllData().then(refreshUI);
+  document.getElementById('storageStatus').innerHTML='🗑️ Cleared.';
+}
+function exportCSV(){
+  const rows=civilizations.map(c=>`${c.name},${c.latitude},${c.longitude},${c.start_year||0},${c.end_year||0},${c.region},${c.resource_density},${c.knowledge_density},${c.military_strength}`);
+  const blob=new Blob([['name,latitude,longitude,start_year,end_year,region,resource_density,knowledge_density,military_strength',...rows].join('\n')],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='civilizations.csv'; a.click();
+  const out=document.getElementById('addOutput'); out.style.display='block';
+  out.innerHTML=`<span class="ok">✔ CSV exported — ${civilizations.length} civilizations.</span>\nReplace civilizations.csv, then restart the C++ server:\n  ./server`;
 }
 
 // ════════════════════════════════════════════════
-//  AI CHAT ASSISTANT
+//  FALLBACK DATA (when server is offline)
 // ════════════════════════════════════════════════
-let chatOpen=false;
-let chatHistory=[];
-
-const SYSTEM_PROMPT=`You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" — a DSA (Data Structures & Algorithms) industry project built in C++ with a Leaflet.js frontend.
-
-PROJECT OVERVIEW:
-- Models civilizations as geographic data points (latitude, longitude)
-- Uses KD-Trees for O(log n) nearest-neighbor and range queries
-- Uses R-Trees for bounding-box regional queries
-- Dataset: 27 civilizations total (15 Indian/South Asian + 12 global)
-- Indian civilizations: Indus Valley, Vedic India, Maurya Empire, Gupta Empire, Chola Dynasty, Vijayanagara, Maratha Empire, Delhi Sultanate, Mughal Empire, Pallava Dynasty, Satavahana, Kushana Empire, Rashtrakuta, Pala Empire, Chera Kingdom
-- Frontend: HTML/CSS/JS with Leaflet.js + CARTO Dark map tiles
-- Backend: C++ with KD-Tree, R-Tree, CSV loader, JSON exporter
-
-KEY DSA CONCEPTS:
-- KD-Tree: Binary tree partitioning k-dimensional space, alternating lat/lon splits at each depth level. Insert O(log n), Nearest neighbor O(log n) with branch pruning, Range query O(log n + k)
-- Branch Pruning: Skip subtrees where |query - split plane| >= bestDistance, achieving O(log n) instead of O(n)
-- R-Tree: Stores bounding boxes (MBRs), better for regional/overlap queries than KD-Tree
-- Spatial Score = (Resource + Knowledge + Military) / 3, all rated 1-100
-
-MAP FEATURES:
-- Click anywhere → nearest civilization query using KD-Tree
-- Toggle mode: Nearest Neighbor vs Point Info (R-Tree lookup)
-- 🇮🇳 Focus India button zooms to Indian subcontinent
-- Colored markers: Orange tones = Indian civs, Blue/teal = global civs
-- Toggle Regions shows 8 R-Tree bounding boxes
-- Range query draws a rectangle on the map
-- Compare query draws a line between two civilizations
-
-STORAGE: localStorage saves custom civilizations across page refreshes. Export CSV syncs data to the C++ backend.
-
-Be concise, friendly, and technical. Use bullet points for lists. When explaining algorithms, give concrete examples using actual civilizations from the dataset. Maximum 3-4 sentences for simple questions, up to 8-10 lines for complex ones. Never use markdown headers in responses — keep it conversational.`;
-
-function toggleChat(){
-  chatOpen=!chatOpen;
-  document.getElementById('chatWindow').classList.toggle('open',chatOpen);
-  if(chatOpen){
-    document.getElementById('chatInput').focus();
-    document.getElementById('chatToggle').querySelector('.chat-badge').style.background='#c9a84c';
-    document.getElementById('chatToggle').querySelector('.chat-badge').textContent='AI';
-  }
+function loadFallbackData() {
+  fetch('/mnt/user-data/outputs/civilizations.csv').catch(()=>{});
+  // Use minimal built-in set so UI is not empty
+  civilizations = [
+    {name:"Indus Valley",latitude:27,longitude:68,region:"South Asia",resource_density:88,knowledge_density:85,military_strength:60,start_year:-3300,end_year:-1300},
+    {name:"Maurya Empire",latitude:25,longitude:83,region:"South Asia",resource_density:85,knowledge_density:88,military_strength:85,start_year:-322,end_year:-185},
+    {name:"Mughal Empire",latitude:27.2,longitude:78,region:"South Asia",resource_density:90,knowledge_density:88,military_strength:90,start_year:1526,end_year:1857},
+    {name:"Ancient Egypt",latitude:26.8,longitude:30.8,region:"North Africa",resource_density:80,knowledge_density:78,military_strength:81,start_year:-3100,end_year:-332},
+    {name:"Roman Empire",latitude:41.9,longitude:12.5,region:"Mediterranean",resource_density:80,knowledge_density:70,military_strength:88,start_year:-27,end_year:476},
+    {name:"Han China",latitude:35,longitude:105,region:"East Asia",resource_density:88,knowledge_density:90,military_strength:85,start_year:-206,end_year:220},
+  ];
+  refreshUI();
+  document.getElementById('nLabel').textContent = '27 (start server for full data)';
 }
 
-function askSuggestion(el){
-  document.getElementById('chatInput').value=el.textContent;
-  sendChat();
-  document.getElementById('chatSuggestions').style.display='none';
+// ════════════════════════════════════════════════
+//  REFRESH UI
+// ════════════════════════════════════════════════
+function refreshUI(){
+  drawMarkers(); renderTable(); renderHeat(); populateSelects();
+  document.getElementById('treeCanvas').width = document.getElementById('treeCanvas').offsetWidth;
+  drawTree();
 }
 
+// ════════════════════════════════════════════════
+//  AI CHAT
+// ════════════════════════════════════════════════
+let chatOpen=false, chatHistory=[];
+const SYSTEM_PROMPT=`You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" — a DSA project with a C++ REST API backend and Leaflet.js frontend.
+
+ARCHITECTURE: The C++ backend (httplib library) serves REST endpoints at localhost:8080. The HTML frontend calls these endpoints using fetch() for all spatial queries. There is NO static data in the frontend — all queries are live from C++.
+
+REST ENDPOINTS:
+- GET /api/civilizations → returns all 27 civilizations as JSON array
+- GET /api/nearest?lat=&lon= → KD-Tree nearest neighbor, returns {nearest, distance_km, algorithm}
+- GET /api/range?latMin=&latMax=&lonMin=&lonMax= → KD-Tree range query, returns {count, results[], algorithm}
+- GET /api/compare?a=&b= → compare two civs, returns {score_a, score_b, winner, distance_km}
+- GET /api/rtree?lat=&lon= → R-Tree region lookup, returns {regions[], count, algorithm}
+- GET /api/stats → returns {total_civilizations, kdtree_nodes, rtree_regions, linear_ops, kdtree_ops, speedup}
+- GET / → health check
+
+CORS: The C++ server sets Access-Control-Allow-Origin: * headers so the browser allows cross-origin requests from the HTML file.
+
+KD-TREE: Binary tree splitting lat/lon alternately per depth. O(log n) nearest neighbor with branch pruning. O(log n + k) range query. Branch pruning skips subtrees where |query - split plane| >= bestDistance.
+
+DATASET: 27 civilizations — 15 Indian (Indus Valley, Vedic, Maurya, Gupta, Chola, Vijayanagara, Maratha, Delhi Sultanate, Mughal, Pallava, Satavahana, Kushana, Rashtrakuta, Pala, Chera) + 12 global.
+
+HOW TO START:
+1. Download httplib.h from github.com/yhirose/cpp-httplib
+2. g++ -std=c++17 -o server civilization_mapper.cpp -lpthread
+3. ./server
+4. Open the HTML file in browser
+
+Be concise and technical. Use examples from the actual dataset. No markdown headers.`;
+
+function toggleChat(){ chatOpen=!chatOpen; document.getElementById('chatWindow').classList.toggle('open',chatOpen); if(chatOpen)document.getElementById('chatInput').focus(); }
+function askSuggestion(el){ document.getElementById('chatInput').value=el.textContent; sendChat(); document.getElementById('chatSuggestions').style.display='none'; }
 async function sendChat(){
-  const input=document.getElementById('chatInput');
-  const text=input.value.trim();
-  if(!text)return;
-  input.value='';
-  const sendBtn=document.getElementById('chatSend');
-  sendBtn.disabled=true;
-
-  // Add user message
-  appendChatMsg(text,'user');
-  chatHistory.push({role:'user',content:text});
-
-  // Thinking indicator
-  const thinkId='think-'+Date.now();
-  appendChatMsg('Thinking','assistant thinking',thinkId);
-
+  const input=document.getElementById('chatInput'), text=input.value.trim();
+  if(!text)return; input.value='';
+  document.getElementById('chatSend').disabled=true;
+  appendMsg(text,'user'); chatHistory.push({role:'user',content:text});
+  const tid='t'+Date.now(); appendMsg('Thinking','assistant thinking',tid);
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:SYSTEM_PROMPT,
-        messages:chatHistory.slice(-10) // keep last 10 for context
-      })
+    // Route AI chat through Python server to avoid CORS/API key issues
+    const resp = await fetch(API + '/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text, history: chatHistory.slice(-10)})
     });
-    const data=await resp.json();
-    const reply=data.content?.map(b=>b.text||'').join('')||'Sorry, I could not get a response. Please try again.';
-
-    // Remove thinking, add real reply
-    const thinkEl=document.getElementById(thinkId);
-    if(thinkEl)thinkEl.remove();
-    appendChatMsg(formatChatReply(reply),'assistant',null,true);
+    const data = await resp.json();
+    const reply = data.reply || data.error || 'Sorry, no response.';
+    document.getElementById(tid)?.remove();
+    appendMsg(reply.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'),'assistant',null,true);
     chatHistory.push({role:'assistant',content:reply});
-
-  }catch(err){
-    const thinkEl=document.getElementById(thinkId);
-    if(thinkEl)thinkEl.remove();
-    appendChatMsg('⚠️ Connection error. Make sure you\'re using the Claude.ai interface which handles the API connection.','assistant');
+  }catch(e){
+    document.getElementById(tid)?.remove();
+    appendMsg('⚠️ AI assistant requires the Python server to be running.\nStart with: python server.py','assistant');
   }
-  sendBtn.disabled=false;
-  input.focus();
+  document.getElementById('chatSend').disabled=false;
 }
-
-function formatChatReply(text){
-  // Light formatting: bold **text**, bullet points
-  return text
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/^[-•]\s+/gm,'• ')
-    .replace(/\n/g,'<br>');
-}
-
-function appendChatMsg(content,cls,id=null,isHTML=false){
-  const msgs=document.getElementById('chatMessages');
-  const div=document.createElement('div');
-  div.className='chat-msg '+cls;
-  if(id)div.id=id;
-  if(isHTML)div.innerHTML=content;
-  else div.textContent=content;
-  msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
+function appendMsg(content,cls,id=null,isHTML=false){
+  const msgs=document.getElementById('chatMessages'), div=document.createElement('div');
+  div.className='chat-msg '+cls; if(id)div.id=id;
+  if(isHTML)div.innerHTML=content; else div.textContent=content;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
 }
 
 // ════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════
-window.addEventListener('load',()=>{
-  // Restore saved custom civilizations
-  const saved=loadFromStorage();
-  if(saved.length>0){
-    civilizations.push(...saved);
-    document.getElementById('storageStatus').innerHTML=`💾 <span style="color:#4ade80">Restored ${saved.length} custom civilization(s) from browser storage.</span>`;
-  }
-
-  rebuildTree();
+window.addEventListener('load', async () => {
   initMap();
-  renderTable();
-  renderHeat();
-  renderComplexity();
-  populateSelects();
-  document.getElementById('treeCanvas').width=document.getElementById('treeCanvas').offsetWidth;
-  drawTree();
+  customCivs = loadFromStorage();
   toggleQueryFields();
   setMapMode('nearest');
+  await checkAPIConnection();
+  // Auto-retry after 5s if offline
+  if (!apiOnline) setTimeout(checkAPIConnection, 5000);
 });
-window.addEventListener('resize',()=>drawTree());
+window.addEventListener('resize', () => drawTree());
 </script>
 </body>
 </html>
