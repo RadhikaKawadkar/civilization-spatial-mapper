@@ -4,3 +4,7 @@ build/
 *.obj
 *.log
 .vscode/
+__pycache__/
+*.pyc
+*.pyo
+.env

@@ -1,153 +1,165 @@
-# 🗺️ Civilization Spatial Intelligence Mapper
+# Civilization Spatial Intelligence Mapper
 
-**DSA Industry Project | KD-Trees · R-Trees · Multi-Dimensional Indexing**
-
-> A spatial intelligence engine that compares civilizations based on geography using KD-Trees and multi-dimensional indexing, enabling efficient region and proximity queries at O(log n) average time complexity.
+A spatial data system that indexes historical civilizations by latitude, longitude, and time using KD-Trees and R-Trees. Exposes a FastAPI REST backend and a Leaflet.js map frontend.
 
 ---
 
-## 🚀 Live Demo
+## Problem Statement
 
-Open `civilization_mapper_frontend.html` directly in any browser — no server required.
+Historical civilizations are inherently spatial — they rise and fall at specific coordinates over time. Standard databases answer "find civilization by name", but spatial questions like "which civilizations existed within 500 km of Rome?" or "which clusters of civilizations share the same geographic region?" require spatial indexing structures.
+
+This project implements those structures from scratch (KD-Tree in C++, mirrored in Python) and wraps them in a production-style REST API.
 
 ---
 
-## 📁 Project Structure
+## Architecture
 
 ```
-civilization-spatial-mapper/
-├── civilization_mapper.cpp          ← C++ backend (KD-Tree, R-Tree, queries)
-├── civilization_mapper_frontend.html ← Interactive frontend (Leaflet.js map + AI assistant)
-├── civilizations.csv                ← Dataset (27 civilizations)
-└── README.md
+┌─────────────────────────────────────┐
+│   Frontend (civilization_mapper_    │
+│   frontend.html — Leaflet.js)       │
+└────────────────┬────────────────────┘
+                 │ HTTP fetch()
+┌────────────────▼────────────────────┐
+│   FastAPI Backend  (backend/)       │
+│                                     │
+│   /run        → subprocess C++ exe │
+│   /api/nearest → KD-Tree NN        │
+│   /api/range   → KD-Tree range     │
+│   /api/cluster → DBSCAN            │
+│   /api/compare → score comparison  │
+│   /api/rtree   → R-Tree regions    │
+│   /api/stats   → tree metrics      │
+└────────────────┬────────────────────┘
+                 │
+┌────────────────▼────────────────────┐
+│   C++ Spatial Engine  (core/)       │
+│   KD-Tree + R-Tree (mapper.exe)     │
+└────────────────┬────────────────────┘
+                 │
+┌────────────────▼────────────────────┐
+│   Data  (data/final_dataset.csv)    │
+│   47 civilizations, lat/lon/time    │
+└─────────────────────────────────────┘
 ```
 
 ---
 
-## ⚙️ How to Run the C++ Backend
+## Project Structure
 
-**Requirements:** g++ with C++17 support
+```
+.
+├── backend/
+│   ├── main.py          # FastAPI app — all endpoints
+│   ├── models.py        # Civilization + ClusterResult dataclasses
+│   ├── kdtree.py        # KD-Tree (build, nearest, range, neighbors_within)
+│   ├── rtree_index.py   # R-Tree bounding box regions
+│   ├── clustering.py    # DBSCAN using KD-Tree range search
+│   ├── loader.py        # CSV loader (supports both CSV formats)
+│   └── requirements.txt
+├── core/
+│   ├── kd_tree.cpp / .h
+│   └── rtree/rtree.cpp / .h
+├── data/
+│   ├── final_dataset.csv   # 47 Indian civilizations
+│   └── csv_loader.cpp / .h
+├── analytics/
+│   ├── benchmark.cpp / .h
+│   └── spatial_scaling_test.cpp
+├── utils/logger.cpp / .h
+├── main.cpp                # C++ console entry point
+├── CMakeLists.txt
+├── Makefile
+└── civilization_mapper_frontend.html
+```
+
+---
+
+## How to Run
+
+### 1. Start the FastAPI backend
 
 ```bash
-# Compile
-g++ -std=c++17 -o civilization_mapper civilization_mapper.cpp
-
-# Run
-./civilization_mapper          # Linux / Mac
-civilization_mapper.exe        # Windows
+cd backend
+uvicorn main:app --reload --port 8080
 ```
 
-**Expected output:**
-- KD-Tree inorder traversal (27 nodes)
-- Nearest Neighbor Query result
-- Range Query results
-- Comparative Analysis (Indus Valley vs Ancient Egypt)
-- Time Complexity Analysis table
-- Exports `civilizations_data.json` for frontend
+The API will be live at `http://localhost:8080`.  
+Interactive docs: `http://localhost:8080/docs`
 
----
+### 2. Open the frontend
 
-## 🌍 How to Use the Frontend
+Open `civilization_mapper_frontend.html` directly in Chrome/Firefox.  
+It connects to `http://localhost:8080` automatically.
 
-1. Open `civilization_mapper_frontend.html` in Chrome, Firefox, or Edge
-2. The map loads centered on India with all 27 civilization markers
-3. **Click anywhere on the map** → runs a KD-Tree nearest-neighbor query
-4. Use the **Query Engine** panel for nearest neighbor, range, compare, and R-Tree queries
-5. Use **Add Civilization** to insert new data points into the KD-Tree (saved to browser storage)
-6. Click **Export CSV** to sync new civilizations to the C++ backend
+### 3. Build and run the C++ engine (optional)
 
----
+```bash
+# Windows (MinGW)
+mingw32-make
 
-## 🧠 DSA Concepts Implemented
+# Linux / macOS
+make
 
-| Concept | Implementation |
-|---|---|
-| KD-Tree | Built from scratch in C++ — recursive insertion, axis-based splitting |
-| Nearest Neighbor Search | O(log n) with branch pruning |
-| Range Query | O(log n + k) spatial bounding box search |
-| R-Tree | Bounding box regional index (8 geographic regions) |
-| Divide & Conquer | Median-based balanced tree construction |
-| Multi-dimensional Indexing | 2D spatial indexing (latitude × longitude) |
-
-### Time Complexity
-
-| Operation | Average | Worst |
-|---|---|---|
-| KD-Tree Insert | O(log n) | O(n) |
-| Nearest Neighbor | O(log n) | O(n) |
-| Range Query | O(log n + k) | O(n) |
-| Linear Search | O(n) | O(n) |
-
----
-
-## 🇮🇳 Indian Civilizations Dataset (15 civilizations)
-
-| Civilization | Period | Region |
-|---|---|---|
-| Indus Valley | 3300–1300 BCE | South Asia |
-| Vedic India | 1500–600 BCE | South Asia |
-| Maurya Empire | 322–185 BCE | South Asia |
-| Gupta Empire | 320–550 CE | South Asia |
-| Chola Dynasty | 300–1279 CE | South India |
-| Vijayanagara | 1336–1646 CE | South India |
-| Maratha Empire | 1674–1818 CE | South Asia |
-| Delhi Sultanate | 1206–1526 CE | South Asia |
-| Mughal Empire | 1526–1857 CE | South Asia |
-| Pallava Dynasty | 275–897 CE | South India |
-| Satavahana | 230 BCE–220 CE | South Asia |
-| Kushana Empire | 30–375 CE | Central Asia |
-| Rashtrakuta | 753–982 CE | South India |
-| Pala Empire | 750–1161 CE | South Asia |
-| Chera Kingdom | 300 BCE–1102 CE | South India |
-
----
-
-## 🏗️ System Architecture
-
+# Run standalone
+./mapper.exe
 ```
-Data Ingestion Layer       → CSV Loader (civilizations.csv)
-        ↓
-Spatial Indexing Engine    → KD-Tree (point queries)
-                           → R-Tree  (region queries)
-        ↓
-Query Engine               → Nearest Neighbor  O(log n)
-                           → Range Query       O(log n + k)
-                           → Comparative Analysis
-        ↓
-Analysis Layer             → Complexity comparison (KD-Tree vs Linear)
-        ↓
-Visualization Layer        → C++ console output
-                           → HTML/JS Leaflet.js frontend
-                           → AI Chat Assistant (Claude API)
+
+The `/run` endpoint executes `mapper.exe` via subprocess and returns its output.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health check |
+| GET | `/run` | Execute C++ engine, return stdout |
+| GET | `/api/civilizations` | All civilizations |
+| GET | `/api/nearest?lat=&lon=` | KD-Tree nearest neighbor |
+| GET | `/api/range?latMin=&latMax=&lonMin=&lonMax=` | KD-Tree range query |
+| GET | `/api/cluster?eps=&min_pts=` | DBSCAN geographic clustering |
+| GET | `/api/compare?a=&b=` | Compare two civilizations by score |
+| GET | `/api/rtree?lat=&lon=` | R-Tree region lookup |
+| GET | `/api/stats` | Tree node counts and speedup metrics |
+
+### Example calls
+
+```bash
+# Nearest civilization to central India
+curl "http://localhost:8080/api/nearest?lat=20&lon=78"
+
+# All civilizations in South Asia bounding box
+curl "http://localhost:8080/api/range?latMin=8&latMax=35&lonMin=60&lonMax=97"
+
+# DBSCAN clusters with 10-degree radius, min 2 points
+curl "http://localhost:8080/api/cluster?eps=10&min_pts=2"
+
+# Execute C++ engine
+curl "http://localhost:8080/run"
 ```
 
 ---
 
-## 🗺️ Frontend Features
+## Algorithms
 
-- **Real world map** — Leaflet.js with CARTO Dark tiles (no API key needed)
-- **27 civilization markers** — Orange = Indian, Blue = Global, with popup bar charts
-- **Click-to-query** — Click anywhere to run nearest-neighbor search
-- **Range query rectangle** — Visualized on the map
-- **Compare line** — Draws a line between two compared civilizations
-- **🇮🇳 Focus India** button — Zooms to Indian subcontinent
-- **AI Assistant** — Bottom-right chat popup powered by Claude API
-- **localStorage persistence** — Added civilizations survive page refresh
-- **Export CSV** — Syncs frontend data back to C++ backend
+**KD-Tree** — alternates split axis (latitude / longitude) at each depth level.  
+- Nearest neighbor: O(log n) average with branch pruning  
+- Range query: O(log n + k) where k = results returned  
 
----
+**DBSCAN** — density-based clustering, no cluster count needed.  
+- Uses `kdtree.neighbors_within(lat, lon, eps)` as the ε-neighborhood query  
+- Discovers geographic hotspots (Gangetic Plain, Deccan, Mediterranean) automatically  
+- Points with fewer than `min_pts` neighbors are labeled noise (-1)  
 
-## 👥 Team
-
-**Project:** Civilization Spatial Intelligence Mapper  
-**Technology:** C++17, HTML/CSS/JavaScript, Leaflet.js  
-**DSA Focus:** KD-Trees, R-Trees, Multi-Dimensional Spatial Indexing
+**R-Tree** — 8 named bounding box regions for continent-level lookups.  
+- Point-in-region: O(regions) — constant for fixed region count  
 
 ---
 
-## 📚 References
+## Dependencies
 
-- Bentley, J.L. (1975). *Multidimensional binary search trees used for associative searching*
-- Guttman, A. (1984). *R-Trees: A Dynamic Index Structure for Spatial Searching*
-- Leaflet.js — [leafletjs.com](https://leafletjs.com)
-- CARTO Map Tiles — [carto.com](https://carto.com)
+- Python 3.10+
+- `fastapi==0.115.14`
+- `uvicorn==0.35.0`
+- C++17 compiler (for the optional C++ engine)

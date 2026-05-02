@@ -139,34 +139,125 @@ select option{background:#0b1422;}
 .status-label{color:var(--text-muted);}.status-val{color:var(--text-primary);font-weight:600;}
 
 /* ── AI CHAT ── */
-#chatToggle{position:fixed;bottom:28px;right:28px;z-index:9999;width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(135deg,#0d1b2e,#1a2f4a);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 20px rgba(201,168,76,.25);transition:transform .2s;font-size:1.5rem;}
+#chatToggle{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  width:56px;height:56px;border-radius:50%;
+  border:2px solid var(--gold);
+  background:linear-gradient(135deg,#0d1b2e,#1a2f4a);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 20px rgba(201,168,76,.25);
+  transition:transform .2s;font-size:1.4rem;
+}
 #chatToggle:hover{transform:scale(1.08);}
-#chatToggle .chat-badge{position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:#4ade80;border-radius:50%;border:2px solid var(--bg-deep);font-size:.6rem;color:#050a14;font-weight:700;display:flex;align-items:center;justify-content:center;}
-#chatWindow{position:fixed;bottom:100px;right:28px;z-index:9998;width:380px;max-width:calc(100vw - 40px);background:#0a1628;border:1px solid rgba(201,168,76,.35);border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.8);display:none;flex-direction:column;overflow:hidden;animation:chatSlideIn .25s ease;}
-@keyframes chatSlideIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+#chatToggle .chat-badge{
+  position:absolute;top:-4px;right:-4px;
+  width:20px;height:20px;background:#4ade80;border-radius:50%;
+  border:2px solid var(--bg-deep);font-size:.6rem;color:#050a14;
+  font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+#chatWindow{
+  position:fixed;bottom:92px;right:24px;z-index:9998;
+  width:400px;max-width:calc(100vw - 32px);
+  background:#0a1628;
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.85);
+  display:none;flex-direction:column;overflow:hidden;
+  animation:chatSlideIn .22s ease;
+}
+@keyframes chatSlideIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 #chatWindow.open{display:flex;}
-.chat-header{padding:14px 18px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(0,180,216,.06));border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;gap:10px;}
-.chat-header-icon{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a07830);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
-.chat-header-text h3{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold);margin:0;}
-.chat-header-text p{font-size:.7rem;color:var(--text-muted);margin:0;}
-.chat-header-close{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:2px 6px;border-radius:4px;}
-#chatMessages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:360px;min-height:200px;scrollbar-width:thin;}
-.chat-msg{max-width:88%;font-size:.84rem;line-height:1.55;padding:9px 13px;border-radius:10px;word-break:break-word;}
-.chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.1));border:1px solid rgba(201,168,76,.25);color:var(--text-primary);border-bottom-right-radius:3px;}
-.chat-msg.assistant{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-primary);border-bottom-left-radius:3px;}
-.chat-msg.assistant strong{color:var(--gold);}
-.chat-msg.thinking{color:var(--text-muted);font-style:italic;}
+.chat-header{
+  padding:14px 16px;
+  background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(0,180,216,.05));
+  border-bottom:1px solid rgba(201,168,76,.18);
+  display:flex;align-items:center;gap:10px;
+}
+.chat-header-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#1a3a5c,#0d2035);
+  border:1.5px solid rgba(201,168,76,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+}
+.chat-header-info h3{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);margin:0;letter-spacing:.04em;}
+.chat-header-info p{font-size:.68rem;color:var(--text-muted);margin:0;}
+.chat-header-close{
+  margin-left:auto;background:none;border:none;
+  color:var(--text-muted);font-size:1.1rem;cursor:pointer;
+  padding:3px 7px;border-radius:4px;transition:color .15s;
+}
+.chat-header-close:hover{color:var(--text-primary);}
+#chatMessages{
+  flex:1;overflow-y:auto;padding:14px 14px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  max-height:340px;min-height:180px;scrollbar-width:thin;
+}
+.chat-msg{
+  max-width:90%;font-size:.83rem;line-height:1.55;
+  padding:9px 13px;border-radius:12px;word-break:break-word;
+}
+.chat-msg.user{
+  align-self:flex-end;
+  background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.1));
+  border:1px solid rgba(201,168,76,.28);color:var(--text-primary);
+  border-bottom-right-radius:3px;
+}
+.chat-msg.assistant{
+  align-self:flex-start;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  color:var(--text-primary);border-bottom-left-radius:3px;
+}
+.chat-msg.assistant strong,.chat-msg.assistant b{color:var(--gold);}
+.chat-msg.thinking{color:var(--text-muted);font-style:italic;font-size:.78rem;}
 .chat-msg.thinking::after{content:'...';animation:dots 1.2s infinite;}
 @keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
-.chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;}
-.chat-suggestion{font-size:.72rem;padding:5px 10px;border:1px solid rgba(201,168,76,.25);border-radius:20px;background:rgba(201,168,76,.05);color:var(--gold);cursor:pointer;transition:all .15s;font-family:'Rajdhani',sans-serif;}
+.chat-suggestions{
+  display:flex;flex-wrap:wrap;gap:5px;
+  padding:6px 14px 10px;
+}
+.chat-suggestion{
+  font-size:.7rem;padding:4px 10px;
+  border:1px solid rgba(201,168,76,.22);border-radius:20px;
+  background:rgba(201,168,76,.04);color:var(--gold);
+  cursor:pointer;transition:all .15s;font-family:'Rajdhani',sans-serif;
+}
 .chat-suggestion:hover{background:rgba(201,168,76,.12);border-color:var(--gold);}
-.chat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);}
-#chatInput{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:8px;color:var(--text-primary);font-family:'Rajdhani',sans-serif;font-size:.85rem;padding:.5rem .8rem;resize:none;outline:none;line-height:1.4;}
-#chatInput:focus{border-color:var(--gold);}
-#chatSend{background:linear-gradient(135deg,var(--gold),#a07830);border:none;border-radius:8px;color:#050a14;font-size:1.1rem;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
-#chatSend:hover{transform:scale(1.08);}
-#chatSend:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.chat-key-row{
+  display:flex;gap:6px;padding:8px 14px;
+  border-top:1px solid rgba(255,255,255,.05);
+  background:rgba(0,0,0,.15);align-items:center;
+}
+.chat-key-row input{
+  flex:1;background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,168,76,.2);border-radius:6px;
+  color:var(--text-primary);font-family:'Rajdhani',sans-serif;
+  font-size:.78rem;padding:.4rem .7rem;outline:none;
+}
+.chat-key-row input:focus{border-color:rgba(201,168,76,.5);}
+.chat-key-label{font-size:.68rem;color:var(--text-muted);white-space:nowrap;}
+.chat-input-row{
+  display:flex;gap:8px;padding:10px 14px 12px;
+  border-top:1px solid rgba(255,255,255,.05);
+  background:rgba(0,0,0,.2);align-items:flex-end;
+}
+#chatInput{
+  flex:1;background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,168,76,.2);border-radius:8px;
+  color:var(--text-primary);font-family:'Rajdhani',sans-serif;
+  font-size:.85rem;padding:.5rem .8rem;resize:none;outline:none;line-height:1.4;
+}
+#chatInput:focus{border-color:rgba(201,168,76,.45);}
+#chatSend{
+  background:linear-gradient(135deg,#1a6b9a,#0d4a6e);
+  border:1px solid rgba(0,180,216,.4);border-radius:8px;
+  color:#fff;font-size:1rem;width:36px;height:36px;
+  cursor:pointer;flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;transition:all .15s;
+}
+#chatSend:hover{background:linear-gradient(135deg,#1e7db5,#1060a0);transform:scale(1.05);}
+#chatSend:disabled{opacity:.35;cursor:not-allowed;transform:none;}
 
 @keyframes borderGlow{0%,100%{opacity:.4}50%{opacity:1}}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg-deep);}::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px;}
@@ -175,12 +266,12 @@ select option{background:#0b1422;}
 <body>
 
 <header>
-  <div class="header-icon">🗺️</div>
+  <div class="header-icon">📖</div>
   <h1>Civilization Spatial Intelligence Mapper</h1>
-  <p class="subtitle">DSA Industry Project &nbsp;|&nbsp; KD-Trees · R-Trees · REST API · C++ Backend</p>
+  <p class="subtitle">DSA Industry Project &nbsp;|&nbsp; KD-Trees · R-Trees · Multi-Dimensional Indexing</p>
   <div class="tags">
-    <span class="tag">KD-Tree</span><span class="tag">R-Tree</span><span class="tag">REST API</span>
-    <span class="tag">C++ Backend</span><span class="tag">Leaflet.js</span><span class="tag">Live Queries</span>
+    <span class="tag">KD-Tree</span><span class="tag">R-Tree</span><span class="tag">Nearest Neighbor</span>
+    <span class="tag">Range Query</span><span class="tag">Leaflet.js</span><span class="tag">C++</span><span class="tag">AI Assistant</span>
   </div>
 </header>
 
@@ -192,7 +283,7 @@ select option{background:#0b1422;}
   <div id="apiBanner" class="checking">
     <div class="api-dot pulse" id="apiDot" style="background:#c9a84c"></div>
     <div>
-      <div id="apiStatusText"><span class="spinner"></span>Connecting to C++ REST API at http://localhost:8080...</div>
+      <div id="apiStatusText"><span class="spinner"></span>Connecting to FastAPI backend at http://localhost:8080...</div>
       <div class="api-endpoint-list" id="apiEndpointList"></div>
     </div>
     <button class="btn btn-secondary" style="margin-left:auto;padding:.4rem .9rem;font-size:.75rem" onclick="checkAPIConnection()">↺ Retry</button>
@@ -200,11 +291,11 @@ select option{background:#0b1422;}
 
   <!-- Stats -->
   <div class="status-bar">
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">KD-Tree:</span><span class="status-val" id="statusKD">—</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">R-Tree Regions:</span><span class="status-val" id="statusRT">—</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Civilizations:</span><span class="status-val" id="statusCount">—</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Backend:</span><span class="status-val">C++ · httplib</span></div>
-    <div class="status-item"><div class="status-dot"></div><span class="status-label">Speedup:</span><span class="status-val" id="statusSpeedup">—</span></div>
+    <div class="status-item"><div class="status-dot"></div><span class="status-label">Tree:</span><span class="status-val" id="statusKD">— nodes</span></div>
+    <div class="status-item"><div class="status-dot" style="background:#00b4d8;box-shadow:0 0 6px #00b4d8"></div><span class="status-label">R-Tree Regions:</span><span class="status-val" id="statusRT">— Indexed</span></div>
+    <div class="status-item"><div class="status-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div><span class="status-label">Dataset:</span><span class="status-val" id="statusCount">— Civilizations</span></div>
+    <div class="status-item"><div class="status-dot" style="background:#f97316;box-shadow:0 0 6px #f97316"></div><span class="status-label">Indian Civs:</span><span class="status-val" id="statusIndian">15 civilizations</span></div>
+    <div class="status-item"><div class="status-dot" style="background:#c9a84c;box-shadow:0 0 6px #c9a84c"></div><span class="status-label">Map:</span><span class="status-val">Leaflet.js · CARTO Dark</span></div>
   </div>
 </div>
 
@@ -222,8 +313,8 @@ select option{background:#0b1422;}
   </div>
   <div class="btn-row">
     <button class="btn btn-primary"   id="btnAdd"   onclick="addCivilization()">+ Insert to KD-Tree</button>
-    <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn btn-danger"    onclick="clearCustomCivs()">🗑 Clear Added</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">↑ Export CSV</button>
+    <button class="btn btn-danger"    onclick="clearCustomCivs()">■ Clear Added</button>
   </div>
   <div id="storageStatus" style="font-size:.78rem;color:var(--text-muted);margin-top:.6rem"></div>
   <div id="addOutput" class="output-panel" style="display:none"></div>
@@ -231,14 +322,14 @@ select option{background:#0b1422;}
 
 <!-- ── QUERY ENGINE ── -->
 <div class="card">
-  <div class="card-title"><span>🔎</span> Spatial Query Engine <span style="font-size:.7rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;font-weight:400;margin-left:.5rem">← powered by C++ REST API</span></div>
+  <div class="card-title"><span>🔎</span> Spatial Query Engine</div>
   <div style="margin-bottom:1rem;">
     <label>Query Type</label>
     <select id="queryType" onchange="toggleQueryFields()" style="margin-top:.3rem">
-      <option value="nearest">Nearest Neighbor — GET /api/nearest</option>
-      <option value="range">Range Query — GET /api/range</option>
-      <option value="compare">Compare — GET /api/compare</option>
-      <option value="rtree">R-Tree Lookup — GET /api/rtree</option>
+      <option value="nearest">Nearest Neighbor (KD-Tree)</option>
+      <option value="range">Range Query (KD-Tree)</option>
+      <option value="compare">Compare Civilizations</option>
+      <option value="rtree">R-Tree Region Lookup</option>
     </select>
   </div>
   <div id="nearestFields" class="input-grid">
@@ -270,17 +361,17 @@ select option{background:#0b1422;}
 
 <!-- ── MAP ── -->
 <div class="card full-width">
-  <div class="card-title"><span>🌍</span> Spatial Map — Live from C++ Backend</div>
+  <div class="card-title"><span style="width:10px;height:10px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;display:inline-block;margin-right:.4rem"></span> Real World Spatial Map — Leaflet.js + CARTO Dark</div>
   <div class="map-toolbar">
-    <button class="btn btn-secondary" id="btnNearest" onclick="setMapMode('nearest')">🎯 Nearest</button>
-    <button class="btn btn-secondary" id="btnInfo"    onclick="setMapMode('info')">ℹ️ Info</button>
-    <button class="btn btn-secondary" onclick="focusIndia()">🇮🇳 India</button>
+    <button class="btn btn-secondary" id="btnNearest" onclick="setMapMode('nearest')">⊞ Nearest</button>
+    <button class="btn btn-secondary" id="btnInfo"    onclick="setMapMode('info')">■ Info</button>
+    <button class="btn btn-secondary" onclick="focusIndia()">⊕ Focus India</button>
     <button class="btn btn-secondary" onclick="fitAllMarkers()">⊞ Fit All</button>
-    <button class="btn btn-secondary" onclick="toggleRegions()">🗺 Regions</button>
-    <span class="map-mode-label" id="mapModeLabel">Mode: Click → /api/nearest</span>
+    <button class="btn btn-secondary" onclick="toggleRegions()">⊟ Regions</button>
+    <span class="map-mode-label" id="mapModeLabel">Mode: Click → Nearest</span>
   </div>
   <div id="leafletMap"></div>
-  <div id="mapClickInfo">Click anywhere — frontend calls C++ REST API in real time</div>
+  <div id="mapClickInfo">Click anywhere — frontend calls FastAPI backend in real time</div>
   <div class="map-legend">
     <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Indian Civilization</div>
     <div class="legend-item"><div class="legend-dot" style="background:#00b4d8"></div>Global Civilization</div>
@@ -331,15 +422,18 @@ select option{background:#0b1422;}
 </main>
 
 <!-- ── AI CHAT ── -->
-<button id="chatToggle" onclick="toggleChat()" title="Ask the AI Assistant">🤖<span class="chat-badge">AI</span></button>
+<button id="chatToggle" onclick="toggleChat()" title="Ask AI anything">🤖<span class="chat-badge">AI</span></button>
 <div id="chatWindow">
   <div class="chat-header">
-    <div class="chat-header-icon">🗺️</div>
-    <div class="chat-header-text"><h3>Spatial Intelligence Assistant</h3><p>Ask about KD-Trees, REST API, queries & more</p></div>
+    <div class="chat-header-avatar">🗺️</div>
+    <div class="chat-header-info">
+      <h3>Spatial Intelligence Assistant</h3>
+      <p>Ask about KD-Trees, REST API, queries &amp; more</p>
+    </div>
     <button class="chat-header-close" onclick="toggleChat()">✕</button>
   </div>
   <div id="chatMessages">
-    <div class="chat-msg assistant">👋 Hello! I'm your <strong>Spatial Intelligence Assistant</strong>.<br><br>This project connects a <strong>C++ REST API backend</strong> to this frontend using HTTP requests. Ask me how it works!<br><br>What would you like to know?</div>
+    <div class="chat-msg assistant">🔥 Hello! I'm your <strong>Spatial Intelligence Assistant.</strong><br><br>This project connects a <strong>C++ REST API backend</strong> to this frontend using HTTP requests. Ask me how it works!<br><br>What would you like to know?</div>
   </div>
   <div class="chat-suggestions" id="chatSuggestions">
     <span class="chat-suggestion" onclick="askSuggestion(this)">How does the REST API work?</span>
@@ -347,6 +441,12 @@ select option{background:#0b1422;}
     <span class="chat-suggestion" onclick="askSuggestion(this)">What is CORS and why does it matter?</span>
     <span class="chat-suggestion" onclick="askSuggestion(this)">Which Indian civilizations are included?</span>
     <span class="chat-suggestion" onclick="askSuggestion(this)">KD-Tree vs R-Tree difference?</span>
+  </div>
+  <!-- API key row — shown only when key not yet saved -->
+  <div class="chat-key-row" id="chatKeyRow">
+    <span class="chat-key-label">API Key:</span>
+    <input type="password" id="chatApiKey" placeholder="sk-ant-... (saved in browser)">
+    <button class="btn btn-primary" style="padding:.3rem .8rem;font-size:.72rem;white-space:nowrap" onclick="saveApiKey()">Save</button>
   </div>
   <div class="chat-input-row">
     <textarea id="chatInput" placeholder="Ask about the project..." rows="1"
@@ -364,9 +464,22 @@ let apiOnline = false;
 
 // Indian civilization names (for styling)
 const INDIAN_NAMES = new Set([
-  'Indus Valley','Vedic India','Maurya Empire','Gupta Empire','Chola Dynasty',
-  'Vijayanagara','Maratha Empire','Delhi Sultanate','Mughal Empire',
-  'Pallava Dynasty','Satavahana','Kushana Empire','Rashtrakuta','Pala Empire','Chera Kingdom'
+  // Names from final_dataset.csv / FALLBACK_CIVS
+  'Indus Valley (Harappan)','Early Harappan','Late Harappan','Vedic Civilization',
+  'Painted Grey Ware Culture','Mahajanapadas','Magadha','Maurya Empire',
+  'Shunga Dynasty','Kanva Dynasty','Satavahana Dynasty','Indo-Greek Kingdom',
+  'Kushan Empire','Western Kshatrapas','Gupta Empire','Vakataka Dynasty',
+  'Maitraka Dynasty','Chalukya Dynasty','Rashtrakuta Dynasty','Pallava Dynasty',
+  'Chola Dynasty','Pandya Dynasty','Chera Dynasty','Hoysala Empire',
+  'Kakatiya Dynasty','Seuna (Yadava) Dynasty','Paramara Dynasty','Chandela Dynasty',
+  'Gurjara-Pratihara','Pala Empire','Sena Dynasty','Ahom Kingdom',
+  'Kamarupa Kingdom','Kashmir Shaiva Kingdoms','Delhi Sultanate','Bahmani Sultanate',
+  'Vijayanagara Empire','Deccan Sultanates','Mughal Empire','Maratha Empire',
+  'Sikh Empire','Kingdom of Mysore','Travancore Kingdom','Hyderabad State',
+  'Rajput Kingdoms','Gond Kingdom','Kalinga Kingdom',
+  // Legacy names from old server.py dataset
+  'Indus Valley','Vedic India','Pallava Dynasty','Satavahana','Kushana Empire',
+  'Rashtrakuta','Pala Empire','Chera Kingdom','Vijayanagara','Delhi Sultanate',
 ]);
 
 const BUILTIN_COUNT_KEY = 'civ_builtin_count';
@@ -418,7 +531,7 @@ async function checkAPIConnection() {
     banner.className = 'connected';
     dot.className = 'api-dot';
     dot.style.background = '#4ade80';
-    text.innerHTML = '✅ <strong>Python REST API is running</strong> — all queries are live from your backend (KD-Tree + R-Tree)';
+    text.innerHTML = '✅ <strong>FastAPI backend is running</strong> — all queries are live (KD-Tree + R-Tree + DBSCAN)';
     epList.innerHTML = 'Endpoints: ' + (data.endpoints||[]).map(e=>`<span style="color:#c9a84c">${e}</span>`).join('  ·  ');
     setButtonsEnabled(true);
     await loadAllData();
@@ -427,9 +540,9 @@ async function checkAPIConnection() {
     banner.className = 'offline';
     dot.className = 'api-dot';
     dot.style.background = '#f87171';
-    text.innerHTML = `⚠️ <strong>Python server not running.</strong> Start it in your terminal:
-      <code style="background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;color:#fbbf24">python server.py</code>`;
-    epList.innerHTML = `<span style="color:#f87171">Run: python server.py — then click Retry</span>`;
+    text.innerHTML = `⚠️ <strong>FastAPI server not running.</strong> Start it in your terminal:
+      <code style="background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;color:#fbbf24">cd backend && uvicorn main:app --reload --port 8080</code>`;
+    epList.innerHTML = `<span style="color:#f87171">Run: cd backend && uvicorn main:app --reload --port 8080 — then click Retry</span>`;
     setButtonsEnabled(false);
     loadFallbackData();
   }
@@ -454,15 +567,20 @@ async function loadAllData() {
       apiFetch('/api/civilizations'),
       apiFetch('/api/stats')
     ]);
-    civilizations = civData;
-    // Also merge any locally-added civs that aren't in the backend yet
+    // Ensure every civ has the required score fields — fill defaults if missing
+    civilizations = civData.map(c => ({
+      ...c,
+      resource_density:  c.resource_density  || 75,
+      knowledge_density: c.knowledge_density || 75,
+      military_strength: c.military_strength || 75,
+      region: c.region || 'South Asia',
+    }));
     const saved = loadFromStorage();
     saved.forEach(sc => {
-      if (!civilizations.find(c=>c.name===sc.name)) civilizations.push(sc);
+      if (!civilizations.find(c => c.name === sc.name)) civilizations.push(sc);
     });
     updateStatusBar(statsData);
-    // Small delay ensures Leaflet map is fully initialized before adding markers
-    setTimeout(() => refreshUI(), 200);
+    setTimeout(() => refreshUI(), 100);
   } catch(e) {
     console.error('Failed to load data:', e);
   }
@@ -470,9 +588,8 @@ async function loadAllData() {
 
 function updateStatusBar(stats) {
   document.getElementById('statusKD').textContent    = stats.kdtree_nodes + ' nodes';
-  document.getElementById('statusRT').textContent    = stats.rtree_regions + ' regions';
-  document.getElementById('statusCount').textContent = stats.total_civilizations + ' civilizations';
-  document.getElementById('statusSpeedup').textContent = stats.speedup + 'x faster than linear';
+  document.getElementById('statusRT').textContent    = stats.rtree_regions + ' Indexed';
+  document.getElementById('statusCount').textContent = stats.total_civilizations + ' Civilizations';
   document.getElementById('nLabel').textContent      = stats.total_civilizations;
   renderComplexity(stats);
 }
@@ -507,11 +624,10 @@ async function runQuery() {
       const c = data.nearest;
       out.innerHTML =
         `<span class="hl">GET /api/nearest?lat=${lat}&lon=${lon}</span>\n`+
-        `<span class="hl">← C++ KD-Tree Response:</span>\n`+
+        `<span class="hl">← FastAPI Response:</span>\n`+
         `<span class="ok">✔ Nearest: ${c.name}</span>\n`+
         `Region: ${c.region} | Score: ${score(c)}\n`+
-        `Distance: ~${data.distance_km.toFixed(0)} km\n`+
-        `Algorithm: ${data.algorithm}`;
+        `Distance: ~${data.distance_km.toFixed(0)} km | ${data.algorithm}`;
       pulseMarker(c);
       if(rangeRect) lmap.removeLayer(rangeRect);
       rangeRect = L.polyline([[lat,lon],[c.latitude,c.longitude]],{color:'rgba(255,255,255,0.5)',weight:1.5,dashArray:'4 4'}).addTo(lmap);
@@ -574,7 +690,7 @@ async function runQuery() {
 function showOfflineWarning() {
   const out = document.getElementById('queryOutput');
   out.style.display = 'block';
-  out.innerHTML = `<span class="err">⚠️ Python server is not running.\n\nStart it:\n  python server.py\n\nThen click Retry in the banner above.</span>`;
+  out.innerHTML = `<span class="err">⚠️ FastAPI server is not running.\n\nStart it:\n  cd backend\n  uvicorn main:app --reload --port 8080\n\nThen click Retry in the banner above.</span>`;
 }
 
 function clearOutput() {
@@ -639,7 +755,7 @@ function initMap() {
         if(rangeRect) lmap.removeLayer(rangeRect);
         rangeRect = L.polyline([[lat,lon],[c.latitude,c.longitude]],{color:'rgba(255,255,255,0.4)',weight:1.5,dashArray:'4 4'}).addTo(lmap);
         pulseMarker(c, false);
-        document.getElementById('mapClickInfo').innerHTML = `🎯 /api/nearest → <strong style="color:#c9a84c">${c.name}</strong> · ${c.region} · ~${data.distance_km.toFixed(0)} km`;
+        document.getElementById('mapClickInfo').innerHTML = `🎯 Nearest: <strong style="color:#c9a84c">${c.name}</strong> · Region: ${c.region} | Score: ${score(c)} · Distance: ~${data.distance_km.toFixed(0)} km | O(log n) branch pruning`;
       } catch(err) {
         document.getElementById('mapClickInfo').innerHTML = `⚠️ API error: ${err.message}`;
       }
@@ -722,7 +838,7 @@ function focusIndia() { lmap.setView([22,80],5,{animate:true}); }
 function toggleRegions() { regionVisible=!regionVisible; regionVisible?lmap.addLayer(regionsLayer):lmap.removeLayer(regionsLayer); }
 function setMapMode(mode) {
   mapMode = mode;
-  document.getElementById('mapModeLabel').textContent = mode==='nearest' ? 'Mode: Click → /api/nearest' : 'Mode: Click → /api/rtree';
+  document.getElementById('mapModeLabel').textContent = mode==='nearest' ? 'Mode: Click → Nearest' : 'Mode: Click → Region Info';
   ['btnNearest','btnInfo'].forEach(id => { document.getElementById(id).style.borderColor=''; document.getElementById(id).style.color=''; });
   const a = mode==='nearest'?'btnNearest':'btnInfo';
   document.getElementById(a).style.borderColor='#c9a84c'; document.getElementById(a).style.color='#c9a84c';
@@ -783,7 +899,7 @@ function drawTree() {
   cv.width=cv.offsetWidth; cv.height=320;
   const ctx=cv.getContext('2d'),W=cv.width,H=320;
   ctx.fillStyle='#071428'; ctx.fillRect(0,0,W,H);
-  if (!civilizations.length) { ctx.fillStyle='#7a8fa6'; ctx.font='14px Rajdhani'; ctx.textAlign='center'; ctx.fillText('Start the C++ server to visualize the KD-Tree',W/2,H/2); return; }
+  if (!civilizations.length) { ctx.fillStyle='#7a8fa6'; ctx.font='14px Rajdhani'; ctx.textAlign='center'; ctx.fillText('Loading civilizations...',W/2,H/2); return; }
   // Build a local tree for visualization only
   function buildViz(pts,d=0){ if(!pts.length)return null; const ax=d%2; pts.sort((a,b)=>ax?a.longitude-b.longitude:a.latitude-b.latitude); const m=Math.floor(pts.length/2),nd={c:pts[m],left:null,right:null}; nd.left=buildViz(pts.slice(0,m),d+1); nd.right=buildViz(pts.slice(m+1),d+1); return nd; }
   const root=buildViz([...civilizations],0);
@@ -853,94 +969,244 @@ function exportCSV(){
 }
 
 // ════════════════════════════════════════════════
-//  FALLBACK DATA (when server is offline)
+//  FALLBACK DATA — full 47-civilization dataset
+//  Used when FastAPI backend is offline
 // ════════════════════════════════════════════════
-function loadFallbackData() {
-  fetch('/mnt/user-data/outputs/civilizations.csv').catch(()=>{});
-  // Use minimal built-in set so UI is not empty
-  civilizations = [
-    {name:"Indus Valley",latitude:27,longitude:68,region:"South Asia",resource_density:88,knowledge_density:85,military_strength:60,start_year:-3300,end_year:-1300},
-    {name:"Maurya Empire",latitude:25,longitude:83,region:"South Asia",resource_density:85,knowledge_density:88,military_strength:85,start_year:-322,end_year:-185},
-    {name:"Mughal Empire",latitude:27.2,longitude:78,region:"South Asia",resource_density:90,knowledge_density:88,military_strength:90,start_year:1526,end_year:1857},
-    {name:"Ancient Egypt",latitude:26.8,longitude:30.8,region:"North Africa",resource_density:80,knowledge_density:78,military_strength:81,start_year:-3100,end_year:-332},
-    {name:"Roman Empire",latitude:41.9,longitude:12.5,region:"Mediterranean",resource_density:80,knowledge_density:70,military_strength:88,start_year:-27,end_year:476},
-    {name:"Han China",latitude:35,longitude:105,region:"East Asia",resource_density:88,knowledge_density:90,military_strength:85,start_year:-206,end_year:220},
-  ];
+const FALLBACK_CIVS = [
+  {name:"Indus Valley (Harappan)",latitude:25,longitude:67,region:"South Asia",resource_density:88,knowledge_density:85,military_strength:60,start_year:-2600,end_year:-1900},
+  {name:"Early Harappan",latitude:28,longitude:70,region:"South Asia",resource_density:82,knowledge_density:80,military_strength:55,start_year:-3300,end_year:-2600},
+  {name:"Late Harappan",latitude:27,longitude:68,region:"South Asia",resource_density:78,knowledge_density:75,military_strength:52,start_year:-1900,end_year:-1300},
+  {name:"Vedic Civilization",latitude:28.5,longitude:77,region:"South Asia",resource_density:75,knowledge_density:92,military_strength:70,start_year:-1500,end_year:-600},
+  {name:"Painted Grey Ware Culture",latitude:29,longitude:77.5,region:"South Asia",resource_density:70,knowledge_density:72,military_strength:60,start_year:-1200,end_year:-600},
+  {name:"Mahajanapadas",latitude:25,longitude:85,region:"South Asia",resource_density:78,knowledge_density:85,military_strength:75,start_year:-600,end_year:-321},
+  {name:"Magadha",latitude:25.2,longitude:86,region:"South Asia",resource_density:80,knowledge_density:88,military_strength:82,start_year:-600,end_year:-321},
+  {name:"Maurya Empire",latitude:25.6,longitude:85.1,region:"South Asia",resource_density:85,knowledge_density:88,military_strength:85,start_year:-322,end_year:-185},
+  {name:"Shunga Dynasty",latitude:25,longitude:82,region:"South Asia",resource_density:72,knowledge_density:78,military_strength:70,start_year:-185,end_year:-73},
+  {name:"Kanva Dynasty",latitude:25,longitude:82,region:"South Asia",resource_density:68,knowledge_density:74,military_strength:65,start_year:-73,end_year:28},
+  {name:"Satavahana Dynasty",latitude:19,longitude:78,region:"South Asia",resource_density:80,knowledge_density:82,military_strength:78,start_year:-100,end_year:220},
+  {name:"Indo-Greek Kingdom",latitude:34,longitude:72,region:"South Asia",resource_density:75,knowledge_density:80,military_strength:78,start_year:-180,end_year:10},
+  {name:"Kushan Empire",latitude:34.5,longitude:71,region:"Central Asia",resource_density:82,knowledge_density:80,military_strength:85,start_year:50,end_year:375},
+  {name:"Western Kshatrapas",latitude:22.5,longitude:72,region:"South Asia",resource_density:70,knowledge_density:72,military_strength:72,start_year:35,end_year:415},
+  {name:"Gupta Empire",latitude:23,longitude:77,region:"South Asia",resource_density:85,knowledge_density:95,military_strength:78,start_year:320,end_year:550},
+  {name:"Vakataka Dynasty",latitude:20.5,longitude:79,region:"South Asia",resource_density:74,knowledge_density:80,military_strength:72,start_year:250,end_year:500},
+  {name:"Maitraka Dynasty",latitude:22.3,longitude:72.6,region:"South Asia",resource_density:72,knowledge_density:75,military_strength:70,start_year:475,end_year:767},
+  {name:"Chalukya Dynasty",latitude:15.5,longitude:75,region:"South India",resource_density:78,knowledge_density:82,military_strength:80,start_year:543,end_year:753},
+  {name:"Rashtrakuta Dynasty",latitude:16,longitude:75.5,region:"South India",resource_density:79,knowledge_density:84,military_strength:83,start_year:753,end_year:982},
+  {name:"Pallava Dynasty",latitude:12.8,longitude:80.2,region:"South India",resource_density:78,knowledge_density:87,military_strength:80,start_year:275,end_year:897},
+  {name:"Chola Dynasty",latitude:10.8,longitude:79.1,region:"South India",resource_density:82,knowledge_density:88,military_strength:86,start_year:300,end_year:1279},
+  {name:"Pandya Dynasty",latitude:9.9,longitude:78.1,region:"South India",resource_density:76,knowledge_density:82,military_strength:74,start_year:300,end_year:1345},
+  {name:"Chera Dynasty",latitude:10.3,longitude:76.3,region:"South India",resource_density:80,knowledge_density:82,military_strength:72,start_year:300,end_year:1102},
+  {name:"Hoysala Empire",latitude:13,longitude:76.1,region:"South India",resource_density:78,knowledge_density:85,military_strength:76,start_year:1026,end_year:1343},
+  {name:"Kakatiya Dynasty",latitude:18,longitude:79.6,region:"South India",resource_density:76,knowledge_density:80,military_strength:78,start_year:1083,end_year:1323},
+  {name:"Seuna (Yadava) Dynasty",latitude:19.9,longitude:73.8,region:"South Asia",resource_density:74,knowledge_density:78,military_strength:76,start_year:850,end_year:1334},
+  {name:"Paramara Dynasty",latitude:23.5,longitude:75.8,region:"South Asia",resource_density:72,knowledge_density:76,military_strength:74,start_year:800,end_year:1305},
+  {name:"Chandela Dynasty",latitude:24.8,longitude:79.9,region:"South Asia",resource_density:74,knowledge_density:80,military_strength:76,start_year:831,end_year:1315},
+  {name:"Gurjara-Pratihara",latitude:27,longitude:73,region:"South Asia",resource_density:76,knowledge_density:78,military_strength:80,start_year:730,end_year:1036},
+  {name:"Pala Empire",latitude:24,longitude:88,region:"South Asia",resource_density:77,knowledge_density:90,military_strength:76,start_year:750,end_year:1161},
+  {name:"Sena Dynasty",latitude:23,longitude:89,region:"South Asia",resource_density:72,knowledge_density:80,military_strength:72,start_year:1097,end_year:1230},
+  {name:"Ahom Kingdom",latitude:26.5,longitude:92.7,region:"South Asia",resource_density:74,knowledge_density:76,military_strength:82,start_year:1228,end_year:1826},
+  {name:"Kamarupa Kingdom",latitude:26,longitude:91.8,region:"South Asia",resource_density:72,knowledge_density:74,military_strength:70,start_year:350,end_year:1140},
+  {name:"Kashmir Shaiva Kingdoms",latitude:34.1,longitude:74.8,region:"South Asia",resource_density:70,knowledge_density:88,military_strength:68,start_year:800,end_year:1339},
+  {name:"Delhi Sultanate",latitude:28.6,longitude:77.2,region:"South Asia",resource_density:76,knowledge_density:72,military_strength:88,start_year:1206,end_year:1526},
+  {name:"Bahmani Sultanate",latitude:17,longitude:76.8,region:"South Asia",resource_density:74,knowledge_density:74,military_strength:80,start_year:1347,end_year:1527},
+  {name:"Vijayanagara Empire",latitude:15.3,longitude:76.5,region:"South India",resource_density:80,knowledge_density:85,military_strength:84,start_year:1336,end_year:1646},
+  {name:"Deccan Sultanates",latitude:17.5,longitude:78.5,region:"South Asia",resource_density:74,knowledge_density:72,military_strength:78,start_year:1500,end_year:1687},
+  {name:"Mughal Empire",latitude:28.6,longitude:77.2,region:"South Asia",resource_density:90,knowledge_density:88,military_strength:90,start_year:1526,end_year:1857},
+  {name:"Maratha Empire",latitude:18.5,longitude:73.8,region:"South Asia",resource_density:78,knowledge_density:75,military_strength:92,start_year:1674,end_year:1818},
+  {name:"Sikh Empire",latitude:31.6,longitude:74.9,region:"South Asia",resource_density:78,knowledge_density:76,military_strength:88,start_year:1799,end_year:1849},
+  {name:"Kingdom of Mysore",latitude:12.3,longitude:76.6,region:"South India",resource_density:76,knowledge_density:78,military_strength:80,start_year:1399,end_year:1947},
+  {name:"Travancore Kingdom",latitude:8.5,longitude:76.9,region:"South India",resource_density:74,knowledge_density:80,military_strength:72,start_year:1729,end_year:1949},
+  {name:"Hyderabad State",latitude:17.4,longitude:78.5,region:"South Asia",resource_density:78,knowledge_density:76,military_strength:74,start_year:1724,end_year:1948},
+  {name:"Rajput Kingdoms",latitude:26.9,longitude:75.8,region:"South Asia",resource_density:74,knowledge_density:76,military_strength:82,start_year:700,end_year:1200},
+  {name:"Gond Kingdom",latitude:21.9,longitude:80,region:"South Asia",resource_density:70,knowledge_density:68,military_strength:74,start_year:1300,end_year:1750},
+  {name:"Kalinga Kingdom",latitude:20.3,longitude:85.8,region:"South Asia",resource_density:76,knowledge_density:78,military_strength:80,start_year:-300,end_year:260},
+];
+
+async function loadFallbackData() {
+  civilizations = FALLBACK_CIVS.map(c => ({...c, spatial_score: score(c)}));
+
+  const saved = loadFromStorage();
+  saved.forEach(sc => {
+    if (!civilizations.find(c => c.name === sc.name)) civilizations.push(sc);
+  });
+
+  const n = civilizations.length;
+  const logN = Math.ceil(Math.log2(n));
+  updateStatusBar({
+    total_civilizations: n,
+    kdtree_nodes: n,
+    rtree_regions: 8,
+    linear_ops: n,
+    kdtree_ops: logN,
+    speedup: Math.floor(n / logN),
+  });
+
   refreshUI();
-  document.getElementById('nLabel').textContent = '27 (start server for full data)';
 }
 
 // ════════════════════════════════════════════════
 //  REFRESH UI
 // ════════════════════════════════════════════════
-function refreshUI(){
-  drawMarkers(); renderTable(); renderHeat(); populateSelects();
-  document.getElementById('treeCanvas').width = document.getElementById('treeCanvas').offsetWidth;
-  drawTree();
+function refreshUI() {
+  if (!civilizations.length) return;
+  drawMarkers();
+  renderTable();
+  renderHeat();
+  populateSelects();
+  // drawTree needs the canvas to have a real width — use requestAnimationFrame
+  requestAnimationFrame(() => {
+    const cv = document.getElementById('treeCanvas');
+    cv.width = cv.offsetWidth || 460;
+    drawTree();
+  });
 }
 
 // ════════════════════════════════════════════════
-//  AI CHAT
+//  AI CHAT — smart local answers + optional API
 // ════════════════════════════════════════════════
-let chatOpen=false, chatHistory=[];
-const SYSTEM_PROMPT=`You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" — a DSA project with a C++ REST API backend and Leaflet.js frontend.
+let chatOpen = false, chatHistory = [];
+const CHAT_KEY_STORAGE = 'civ_anthropic_key';
 
-ARCHITECTURE: The C++ backend (httplib library) serves REST endpoints at localhost:8080. The HTML frontend calls these endpoints using fetch() for all spatial queries. There is NO static data in the frontend — all queries are live from C++.
-
-REST ENDPOINTS:
-- GET /api/civilizations → returns all 27 civilizations as JSON array
-- GET /api/nearest?lat=&lon= → KD-Tree nearest neighbor, returns {nearest, distance_km, algorithm}
-- GET /api/range?latMin=&latMax=&lonMin=&lonMax= → KD-Tree range query, returns {count, results[], algorithm}
-- GET /api/compare?a=&b= → compare two civs, returns {score_a, score_b, winner, distance_km}
-- GET /api/rtree?lat=&lon= → R-Tree region lookup, returns {regions[], count, algorithm}
-- GET /api/stats → returns {total_civilizations, kdtree_nodes, rtree_regions, linear_ops, kdtree_ops, speedup}
-- GET / → health check
-
-CORS: The C++ server sets Access-Control-Allow-Origin: * headers so the browser allows cross-origin requests from the HTML file.
-
-KD-TREE: Binary tree splitting lat/lon alternately per depth. O(log n) nearest neighbor with branch pruning. O(log n + k) range query. Branch pruning skips subtrees where |query - split plane| >= bestDistance.
-
-DATASET: 27 civilizations — 15 Indian (Indus Valley, Vedic, Maurya, Gupta, Chola, Vijayanagara, Maratha, Delhi Sultanate, Mughal, Pallava, Satavahana, Kushana, Rashtrakuta, Pala, Chera) + 12 global.
-
-HOW TO START:
-1. Download httplib.h from github.com/yhirose/cpp-httplib
-2. g++ -std=c++17 -o server civilization_mapper.cpp -lpthread
-3. ./server
-4. Open the HTML file in browser
-
-Be concise and technical. Use examples from the actual dataset. No markdown headers.`;
-
-function toggleChat(){ chatOpen=!chatOpen; document.getElementById('chatWindow').classList.toggle('open',chatOpen); if(chatOpen)document.getElementById('chatInput').focus(); }
-function askSuggestion(el){ document.getElementById('chatInput').value=el.textContent; sendChat(); document.getElementById('chatSuggestions').style.display='none'; }
-async function sendChat(){
-  const input=document.getElementById('chatInput'), text=input.value.trim();
-  if(!text)return; input.value='';
-  document.getElementById('chatSend').disabled=true;
-  appendMsg(text,'user'); chatHistory.push({role:'user',content:text});
-  const tid='t'+Date.now(); appendMsg('Thinking','assistant thinking',tid);
-  try{
-    // Route AI chat through Python server to avoid CORS/API key issues
-    const resp = await fetch(API + '/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: text, history: chatHistory.slice(-10)})
-    });
-    const data = await resp.json();
-    const reply = data.reply || data.error || 'Sorry, no response.';
-    document.getElementById(tid)?.remove();
-    appendMsg(reply.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'),'assistant',null,true);
-    chatHistory.push({role:'assistant',content:reply});
-  }catch(e){
-    document.getElementById(tid)?.remove();
-    appendMsg('⚠️ AI assistant requires the Python server to be running.\nStart with: python server.py','assistant');
+// Smart local knowledge base — answers common questions without any API key
+function localAnswer(q) {
+  q = q.toLowerCase();
+  if (/kd.?tree|k-d tree/.test(q) && /nearest|search|neighbor/.test(q))
+    return "The KD-Tree nearest neighbor search works by descending toward the query point, tracking the best distance found, then pruning branches where the splitting plane distance ≥ best distance. This gives O(log n) average complexity instead of O(n) for linear scan. For 47 civilizations, that's ~6 operations vs 47.";
+  if (/kd.?tree/.test(q) && /insert|build/.test(q))
+    return "KD-Tree insertion alternates split axis by depth: depth%2==0 splits on latitude, depth%2==1 splits on longitude. Each node partitions space into two half-planes. The tree is built balanced using median-split, giving O(n log n) build time.";
+  if (/kd.?tree/.test(q))
+    return "A KD-Tree (K-Dimensional Tree) is a binary tree that partitions space along alternating axes. At depth 0 it splits on latitude, depth 1 on longitude, depth 2 on latitude again, etc. This enables O(log n) nearest-neighbor and O(log n + k) range queries by pruning irrelevant subtrees.";
+  if (/r.?tree/.test(q))
+    return "The R-Tree stores 8 named bounding boxes (South Asia, Mediterranean, Middle East, East Asia, Mesoamerica, North Africa, Central Asia, South America). A point query checks which MBRs (Minimum Bounding Rectangles) contain the coordinates. It's ideal for region-overlap queries that KD-Trees don't handle natively.";
+  if (/dbscan|cluster/.test(q))
+    return "DBSCAN clustering is built directly on top of the KD-Tree range search. For each unvisited point P, it calls kdtree.range_query(P.lat-eps, P.lat+eps, P.lon-eps, P.lon+eps) as the ε-neighborhood query. If |neighbors| ≥ min_pts, a new cluster expands from P. No external library needed — the KD-Tree IS the spatial index.";
+  if (/range.?quer|bounding.?box/.test(q))
+    return "Range query uses KD-Tree spatial pruning: at each node, if the query box doesn't overlap the node's half-plane, that entire subtree is skipped. Complexity is O(log n + k) where k is the number of results. For the South Asia box (lat 8-35, lon 60-97), it returns ~45 of 47 civilizations.";
+  if (/api|endpoint|rest|fastapi/.test(q))
+    return "FastAPI endpoints at localhost:8080:\n• GET /api/civilizations — all 47 civs\n• GET /api/nearest?lat=&lon= — KD-Tree NN\n• GET /api/range?latMin=&latMax=&lonMin=&lonMax= — range query\n• GET /api/cluster?eps=&min_pts= — DBSCAN\n• GET /api/compare?a=&b= — score comparison\n• GET /api/rtree?lat=&lon= — region lookup\n• GET /api/stats — tree metrics\n• POST /api/chat — AI proxy\n• GET /run — execute C++ engine";
+  if (/indian|india/.test(q) && /civili/.test(q))
+    return "All 47 civilizations in the dataset are Indian/South Asian: Indus Valley, Harappan, Vedic, Mahajanapadas, Magadha, Maurya, Gupta, Satavahana, Kushan, Pallava, Chola, Pandya, Chera, Hoysala, Rashtrakuta, Vijayanagara, Delhi Sultanate, Mughal, Maratha, Sikh Empire, and many more spanning 3300 BCE to 1947 CE.";
+  if (/score|spatial.?score/.test(q))
+    return "Spatial Score = (Resource Density + Knowledge Density + Military Strength) / 3. All three are rated 1–100. Mughal Empire and Gupta Empire score highest (~88-90). It provides an objective composite metric for comparing civilizations across dimensions.";
+  if (/leaflet|map|carto/.test(q))
+    return "The map uses Leaflet.js with CARTO Dark Matter tiles (no API key needed). Civilization markers use custom SVG pin icons — orange for Indian civs, teal/blue for global. Click anywhere in Nearest mode to call /api/nearest live. The dashed rectangles are R-Tree bounding box regions.";
+  if (/cors/.test(q))
+    return "CORS (Cross-Origin Resource Sharing) allows the HTML frontend (file:// or different port) to call the FastAPI server at localhost:8080. FastAPI's CORSMiddleware sets Access-Control-Allow-Origin: * so the browser permits the cross-origin fetch() calls.";
+  if (/complex|big.?o|time.?complex|o\(/.test(q))
+    return "Time complexities:\n• KD-Tree build: O(n log n)\n• KD-Tree nearest neighbor: O(log n) average\n• KD-Tree range query: O(log n + k)\n• DBSCAN: O(n log n) using KD-Tree ε-queries\n• R-Tree point query: O(log n)\nFor n=47: log₂(47) ≈ 6, so KD-Tree does ~6 ops vs 47 for linear scan — 7x speedup.";
+  if (/how.*(run|start|launch)|start.*(project|server|app)/.test(q))
+    return "To run the project:\n1. cd backend\n2. uvicorn main:app --reload --port 8080\n3. Open civilization_mapper_frontend.html in Chrome\n\nThe frontend auto-connects to the backend. All map clicks, queries, and clustering call the FastAPI endpoints live.";
+  if (/mughal|chola|maurya|gupta|indus|vedic|maratha/.test(q)) {
+    const name = q.match(/mughal|chola|maurya|gupta|indus|vedic|maratha/)[0];
+    const civ = FALLBACK_CIVS.find(c => c.name.toLowerCase().includes(name));
+    if (civ) return `${civ.name}: Located at (${civ.latitude}°N, ${civ.longitude}°E), ${civ.region}. Period: ${Math.abs(civ.start_year)} ${civ.start_year<0?'BCE':'CE'} – ${Math.abs(civ.end_year)} ${civ.end_year<0?'BCE':'CE'}. Spatial Score: ${score(civ)} (Resource: ${civ.resource_density}, Knowledge: ${civ.knowledge_density}, Military: ${civ.military_strength}).`;
   }
-  document.getElementById('chatSend').disabled=false;
+  return null; // no local answer — needs API
 }
-function appendMsg(content,cls,id=null,isHTML=false){
-  const msgs=document.getElementById('chatMessages'), div=document.createElement('div');
-  div.className='chat-msg '+cls; if(id)div.id=id;
-  if(isHTML)div.innerHTML=content; else div.textContent=content;
-  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+  if (chatOpen) {
+    const hasKey = !!localStorage.getItem(CHAT_KEY_STORAGE);
+    document.getElementById('chatKeyRow').style.display = hasKey ? 'none' : 'flex';
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function saveApiKey() {
+  const val = document.getElementById('chatApiKey').value.trim();
+  if (!val) return;
+  localStorage.setItem(CHAT_KEY_STORAGE, val);
+  document.getElementById('chatKeyRow').style.display = 'none';
+  document.getElementById('chatApiKey').value = '';
+  appendMsg('✅ API key saved. Full AI mode enabled — ask me anything!', 'assistant');
+}
+
+function askSuggestion(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  document.getElementById('chatSuggestions').style.display = 'none';
+  sendChat();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  document.getElementById('chatSend').disabled = true;
+  appendMsg(text, 'user');
+  chatHistory.push({ role: 'user', content: text });
+
+  // Try local knowledge base first — works with no API key
+  const local = localAnswer(text);
+  if (local) {
+    setTimeout(() => {
+      appendMsg(local.replace(/\n/g, '<br>'), 'assistant', null, true);
+      chatHistory.push({ role: 'assistant', content: local });
+      document.getElementById('chatSend').disabled = false;
+    }, 300);
+    return;
+  }
+
+  // Need API for general questions
+  const apiKey = localStorage.getItem(CHAT_KEY_STORAGE);
+  if (!apiKey) {
+    document.getElementById('chatKeyRow').style.display = 'flex';
+    appendMsg("I can answer project-specific questions without an API key. For general questions (history, coding, anything else), paste your Anthropic API key above — it's stored only in your browser.", 'assistant');
+    document.getElementById('chatSend').disabled = false;
+    return;
+  }
+
+  const tid = 't' + Date.now();
+  appendMsg('Thinking', 'assistant thinking', tid);
+
+  try {
+    let reply;
+    if (apiOnline) {
+      const resp = await fetch(API + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1), api_key: apiKey }),
+      });
+      if (resp.status === 401) { localStorage.removeItem(CHAT_KEY_STORAGE); throw new Error('Invalid API key — please re-enter it.'); }
+      if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
+      reply = (await resp.json()).reply;
+    } else {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'x-api-key': apiKey, 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-3-5-sonnet-latest', max_tokens: 1024, system: 'You are a helpful AI assistant. Answer any question thoroughly.', messages: chatHistory }),
+      });
+      if (resp.status === 401) { localStorage.removeItem(CHAT_KEY_STORAGE); throw new Error('Invalid API key — please re-enter it.'); }
+      if (!resp.ok) throw new Error(`API error ${resp.status}`);
+      reply = (await resp.json()).content?.[0]?.text || 'No response.';
+    }
+    document.getElementById(tid)?.remove();
+    const rendered = reply
+      .replace(/```([\s\S]*?)```/g, '<code style="display:block;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:4px;font-size:.78rem;margin:4px 0;white-space:pre-wrap;color:#4ade80">$1</code>')
+      .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;font-size:.82rem;color:#00b4d8">$1</code>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    appendMsg(rendered, 'assistant', null, true);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (e) {
+    document.getElementById(tid)?.remove();
+    appendMsg(`⚠️ ${e.message}`, 'assistant');
+    if (e.message.includes('API key')) document.getElementById('chatKeyRow').style.display = 'flex';
+  }
+  document.getElementById('chatSend').disabled = false;
+}
+
+function appendMsg(content, cls, id = null, isHTML = false) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + cls;
+  if (id) div.id = id;
+  if (isHTML) div.innerHTML = content; else div.textContent = content;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 // ════════════════════════════════════════════════
@@ -951,8 +1217,12 @@ window.addEventListener('load', async () => {
   customCivs = loadFromStorage();
   toggleQueryFields();
   setMapMode('nearest');
+
+  // ── Step 1: render immediately with built-in data so nothing is blank ──
+  await loadFallbackData();   // populates civilizations + calls refreshUI
+
+  // ── Step 2: try to connect to backend and upgrade data if available ──
   await checkAPIConnection();
-  // Auto-retry after 5s if offline
   if (!apiOnline) setTimeout(checkAPIConnection, 5000);
 });
 window.addEventListener('resize', () => drawTree());
