@@ -1065,7 +1065,7 @@ function refreshUI() {
 //  AI CHAT — smart local answers + optional API
 // ════════════════════════════════════════════════
 let chatOpen = false, chatHistory = [];
-const CHAT_KEY_STORAGE = 'civ_anthropic_key';
+const CHAT_KEY_STORAGE = 'civ_chat_api_key';
 
 // Smart local knowledge base — answers common questions without any API key
 function localAnswer(q) {
@@ -1150,38 +1150,44 @@ async function sendChat() {
     return;
   }
 
-  // Need API for general questions
-  const apiKey = localStorage.getItem(CHAT_KEY_STORAGE);
-  if (!apiKey) {
-    document.getElementById('chatKeyRow').style.display = 'flex';
-    appendMsg("I can answer project-specific questions without an API key. For general questions (history, coding, anything else), paste your Anthropic API key above — it's stored only in your browser.", 'assistant');
-    document.getElementById('chatSend').disabled = false;
-    return;
-  }
-
   const tid = 't' + Date.now();
   appendMsg('Thinking', 'assistant thinking', tid);
 
   try {
     let reply;
-    if (apiOnline) {
-      const resp = await fetch(API + '/api/chat', {
+    const resp = await fetch(API + '/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1), api_key: apiKey }),
-      });
-      if (resp.status === 401) { localStorage.removeItem(CHAT_KEY_STORAGE); throw new Error('Invalid API key — please re-enter it.'); }
-      if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
-      reply = (await resp.json()).reply;
+        body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1) }),
+    });
+    if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
+    const data = await resp.json();
+
+    // If backend handled it locally, use that. Otherwise call Claude.
+    if (data.response) {
+        reply = data.response;
     } else {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'x-api-key': apiKey, 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-3-5-sonnet-latest', max_tokens: 1024, system: 'You are a helpful AI assistant. Answer any question thoroughly.', messages: chatHistory }),
-      });
-      if (resp.status === 401) { localStorage.removeItem(CHAT_KEY_STORAGE); throw new Error('Invalid API key — please re-enter it.'); }
-      if (!resp.ok) throw new Error(`API error ${resp.status}`);
-      reply = (await resp.json()).content?.[0]?.text || 'No response.';
+        const apiKey = localStorage.getItem('civ_chat_api_key');
+        if (!apiKey) {
+            reply = "For general questions, paste your Anthropic API key in the field above.";
+        } else {
+            const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 500,
+                    system: "You are a Spatial Intelligence Assistant for the Civilization Mapper project. It uses KD-Tree, R-Tree, FastAPI backend, and a Leaflet map frontend with ~47 civilizations (Indian + global). Answer questions about the project, civilizations, history, or anything else concisely.",
+                    messages: chatHistory
+                })
+            });
+            const aiData = await aiResp.json();
+            reply = aiData.content?.[0]?.text || 'No response from AI.';
+        }
     }
     document.getElementById(tid)?.remove();
     const rendered = reply
@@ -1194,7 +1200,6 @@ async function sendChat() {
   } catch (e) {
     document.getElementById(tid)?.remove();
     appendMsg(`⚠️ ${e.message}`, 'assistant');
-    if (e.message.includes('API key')) document.getElementById('chatKeyRow').style.display = 'flex';
   }
   document.getElementById('chatSend').disabled = false;
 }

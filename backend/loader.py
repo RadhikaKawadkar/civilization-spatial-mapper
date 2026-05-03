@@ -75,7 +75,7 @@ def _try_int(val: str, default: int = 0) -> int:
 
 def load_civilizations(filepath: str) -> list[Civilization]:
     if not os.path.exists(filepath):
-        print(f"⚠️  {filepath} not found — using built-in data ({len(BUILTIN)} civs)")
+        print(f"WARNING: {filepath} not found - using built-in data ({len(BUILTIN)} civs)")
         return [Civilization(*row) for row in BUILTIN]
 
     civs: list[Civilization] = []
@@ -123,5 +123,5 @@ def load_civilizations(filepath: str) -> list[Civilization]:
         if not any(b[0].lower() in n or n in b[0].lower() for n in names_loaded):
             civs.append(Civilization(*b))
 
-    print(f"✅ Loaded {len(civs)} civilizations from {os.path.basename(filepath)}")
+    print(f"Loaded {len(civs)} civilizations from {os.path.basename(filepath)}")
     return civs
