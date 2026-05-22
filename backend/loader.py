@@ -123,5 +123,5 @@ def load_civilizations(filepath: str) -> list[Civilization]:
         if not any(b[0].lower() in n or n in b[0].lower() for n in names_loaded):
             civs.append(Civilization(*b))
 
-    print(f"Loaded {len(civs)} civilizations from {os.path.basename(filepath)}")
+    print(f"[OK] Loaded {len(civs)} civilizations from {os.path.basename(filepath)}")
     return civs

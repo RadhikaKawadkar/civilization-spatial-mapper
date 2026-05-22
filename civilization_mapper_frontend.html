@@ -19,12 +19,34 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg-deep);color:var(--tex
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,180,216,.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
 
 /* ── HEADER ── */
-header{position:relative;text-align:center;padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(201,168,76,.08) 0%,transparent 100%);}
-.header-icon{font-size:2.5rem;margin-bottom:.5rem;}
-h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2.8rem);font-weight:700;background:linear-gradient(135deg,var(--gold-light),var(--gold),#a07830);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.05em;line-height:1.2;}
-.subtitle{margin-top:.6rem;font-size:.95rem;color:var(--text-muted);letter-spacing:.15em;text-transform:uppercase;}
-.tags{display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;}
-.tag{font-size:.75rem;padding:.25rem .8rem;border:1px solid var(--border);border-radius:20px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);}
+header{
+  position:relative;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(201,168,76,.08) 0%,transparent 100%);
+  padding:1.6rem 1.25rem;
+}
+.hero-title{
+  min-height:112px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+h1{
+  margin:0;
+  font-family:'Cinzel',serif;
+  font-weight:700;
+  font-size:clamp(1.9rem,4.6vw,3.25rem);
+  line-height:1.08;
+  letter-spacing:.06em;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold),#a07830);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  text-shadow:
+    0 0 22px rgba(201,168,76,.16),
+    0 0 44px rgba(201,168,76,.08);
+  filter:drop-shadow(0 10px 26px rgba(0,0,0,.55));
+}
 
 /* ── LAYOUT ── */
 main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:2rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
@@ -102,6 +124,26 @@ select option{background:#0b1422;}
 .data-table th{font-family:'Cinzel',serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);padding:.7rem .6rem;border-bottom:1px solid var(--border);text-align:left;}
 .data-table td{padding:.6rem .6rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-primary);}
 .data-table tr:hover td{background:rgba(201,168,76,.04);cursor:pointer;}
+.table-scroll{
+  overflow:auto;
+  max-height:min(60vh,560px);
+  border:1px solid rgba(201,168,76,.12);
+  border-radius:10px;
+  background:rgba(0,0,0,.18);
+}
+.table-scroll:focus-within{outline:1px solid rgba(201,168,76,.35);}
+.table-empty{
+  padding:1.2rem 1rem;
+  color:var(--text-muted);
+  font-size:.9rem;
+}
+.table-hint{
+  font-size:.74rem;
+  color:var(--text-muted);
+  margin-top:.6rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
 .score-badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-weight:600;font-size:.85rem;}
 .score-high{background:rgba(201,168,76,.15);color:var(--gold);}
 .score-mid{background:rgba(0,180,216,.12);color:var(--accent-teal);}
@@ -117,7 +159,7 @@ select option{background:#0b1422;}
 .output-panel .err{color:#f87171;}
 
 /* ── MISC ── */
-#treeCanvas{width:100%;height:320px;background:#071428;border-radius:8px;border:1px solid var(--border);}
+#treeCanvas{width:100%;height:360px;background:#071428;border-radius:8px;border:1px solid var(--border);}
 .bar-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem;}
 .bar-label{width:110px;font-size:.8rem;color:var(--text-muted);flex-shrink:0;}
 .bar-track{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:10px;overflow:hidden;}
@@ -133,6 +175,51 @@ select option{background:#0b1422;}
 .heat-cell:hover{transform:scale(1.04);}
 .heat-cell .heat-name{font-size:.8rem;font-weight:600;}
 .heat-cell .heat-score{font-size:1.3rem;font-weight:700;margin-top:.2rem;}
+.heat-toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.3rem}
+.heat-toolbar .btn{padding:.35rem .8rem;font-size:.72rem}
+.heat-legend{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-top:.7rem;padding:.6rem .8rem;border-radius:10px;border:1px solid rgba(201,168,76,.14);background:rgba(255,255,255,.02)}
+.heat-legend-bar{height:10px;flex:1;min-width:160px;border-radius:999px;border:1px solid rgba(201,168,76,.15);background:linear-gradient(90deg, rgba(0,180,216,.15), rgba(201,168,76,.55), rgba(255,107,53,.6))}
+.heat-legend-label{font-size:.72rem;color:var(--text-muted);white-space:nowrap}
+
+.ui-tooltip{
+  position:fixed;
+  z-index:99999;
+  pointer-events:none;
+  background:#0d1b2e;
+  border:1px solid rgba(201,168,76,.35);
+  border-radius:12px;
+  box-shadow:0 18px 60px rgba(0,0,0,.85);
+  padding:10px 12px;
+  color:var(--text-primary);
+  font-size:.82rem;
+  max-width:min(360px, calc(100vw - 24px));
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .12s ease, transform .12s ease;
+}
+.ui-tooltip.show{opacity:1;transform:translateY(0)}
+.ui-tooltip .tt-title{font-family:'Cinzel',serif;color:var(--gold);font-weight:700;font-size:.85rem;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(201,168,76,.18)}
+.ui-tooltip .tt-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.ui-tooltip .tt-row{display:flex;justify-content:space-between;gap:10px}
+.ui-tooltip .tt-k{color:var(--text-muted)}
+.ui-tooltip code{color:var(--accent-teal);font-family:'Courier New',monospace;font-size:.78rem}
+
+/* ── KD TREE (INTERACTIVE CANVAS) ── */
+.tree-wrap{position:relative}
+#treeCanvas{touch-action:none;cursor:grab}
+#treeCanvas.dragging{cursor:grabbing}
+.tree-hud{
+  position:absolute;right:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;
+  background:rgba(5,10,20,.55);border:1px solid rgba(201,168,76,.18);
+  padding:6px;border-radius:10px;backdrop-filter:blur(6px)
+}
+.tree-hud .btn{padding:.32rem .7rem;font-size:.7rem}
+.tree-hint{
+  position:absolute;left:12px;bottom:10px;
+  font-size:.72rem;color:rgba(122,143,166,.9);
+  background:rgba(5,10,20,.45);border:1px solid rgba(201,168,76,.12);
+  padding:6px 9px;border-radius:10px;letter-spacing:.06em;text-transform:uppercase;
+}
 .status-bar{display:flex;gap:1.5rem;align-items:center;padding:.7rem 1.2rem;background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;flex-wrap:wrap;}
 .status-item{display:flex;align-items:center;gap:.4rem;font-size:.82rem;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
@@ -265,15 +352,38 @@ select option{background:#0b1422;}
 </head>
 <body>
 
+<div id="landingPage" style="position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%); font-family:'Inter', sans-serif;">
+  <div style="text-align:center; margin-bottom: 2rem;">
+    <div style="font-size:3.5rem; margin-bottom:0.5rem;">🌍</div>
+    <h1 style="font-family:'Cinzel', serif; color:var(--gold); font-size:2.5rem; margin:0; text-shadow: 0 0 20px rgba(201,168,76,0.3);">Civilization Mapper</h1>
+    <p style="color:var(--text-muted); letter-spacing:1px; margin-top: 10px;">Spatial Intelligence & KD-Tree Engine</p>
+  </div>
+  <div class="card" style="width:360px; background:rgba(255,255,255,0.03); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+    <div style="display:flex; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button id="tabLogin" style="flex:1; background:none; border:none; color:var(--gold); padding:0.8rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid var(--gold); transition:all 0.2s;" onclick="setAuthTab('login')">Login</button>
+      <button id="tabRegister" style="flex:1; background:none; border:none; color:var(--text-muted); padding:0.8rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid transparent; transition:all 0.2s;" onclick="setAuthTab('register')">Sign Up</button>
+    </div>
+    <div class="field-group" id="landNameGroup" style="display:none; margin-bottom:15px;"><label>Name</label><input type="text" id="landName" style="padding:0.7rem; font-size:1rem;"></div>
+    <div class="field-group" style="margin-bottom:15px;"><label>Email</label><input type="email" id="landEmail" style="padding:0.7rem; font-size:1rem;"></div>
+    <div class="field-group" style="margin-bottom:25px;"><label>Password</label><input type="password" id="landPassword" style="padding:0.7rem; font-size:1rem;" onkeydown="if(event.key==='Enter')submitLandingAuth();"></div>
+    <button class="btn btn-primary" style="width:100%; padding:0.8rem; font-size:1.05rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); transition:all 0.2s;" id="landSubmitBtn" onclick="submitLandingAuth()">Enter Platform</button>
+    <div id="landError" style="color:#f87171; text-align:center; margin-top:1rem; font-size:0.85rem; min-height:1rem;"></div>
+  </div>
+</div>
+
+<div id="appWrapper" style="display:none;">
+
 <header>
-  <div class="header-icon">📖</div>
-  <h1>Civilization Spatial Intelligence Mapper</h1>
-  <p class="subtitle">DSA Industry Project &nbsp;|&nbsp; KD-Trees · R-Trees · Multi-Dimensional Indexing</p>
-  <div class="tags">
-    <span class="tag">KD-Tree</span><span class="tag">R-Tree</span><span class="tag">Nearest Neighbor</span>
-    <span class="tag">Range Query</span><span class="tag">Leaflet.js</span><span class="tag">C++</span><span class="tag">AI Assistant</span>
+  <div id="userInfoContainer" style="position:absolute; top: 20px; right: 20px; z-index:100; font-size:0.85rem; display:flex; align-items:center;">
+    Logged in as&nbsp;<strong id="userNameDisplay" style="color:var(--gold);"></strong>
+    <button class="btn btn-secondary" style="margin-left:12px; padding:0.2rem 0.6rem; font-size:0.7rem;" onclick="logout()">Logout</button>
+  </div>
+  <div class="hero-title">
+    <h1>Civilization Spatial Intelligence Mapper</h1>
   </div>
 </header>
+
+
 
 <main>
 
@@ -382,8 +492,9 @@ select option{background:#0b1422;}
 <!-- ── TABLE ── -->
 <div class="card full-width">
   <div class="card-title"><span>📊</span> Civilization–Region Matrix <span style="font-size:.72rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;margin-left:.5rem;font-weight:400">(click row → locate on map · 🇮🇳 = Indian)</span></div>
-  <div style="overflow-x:auto">
-    <table class="data-table">
+  <div class="table-scroll" aria-label="Civilization region matrix (scrollable)">
+    <div id="civTableEmpty" class="table-empty" style="display:none"></div>
+    <table class="data-table" id="civTable">
       <thead><tr>
         <th>Civilization</th><th>Region</th><th>Lat</th><th>Lon</th>
         <th>Resource</th><th>Knowledge</th><th>Military</th><th>Score</th>
@@ -391,16 +502,40 @@ select option{background:#0b1422;}
       <tbody id="civTableBody"></tbody>
     </table>
   </div>
+  <div class="table-hint" id="civTableHint" style="display:none">Scroll to see more rows · Click a row to locate on map</div>
 </div>
 
 <!-- ── TREE + HEAT ── -->
 <div class="card">
   <div class="card-title"><span>🌲</span> KD-Tree Visualizer</div>
-  <canvas id="treeCanvas"></canvas>
+  <div class="tree-wrap">
+    <canvas id="treeCanvas" aria-label="KD-tree visualizer canvas"></canvas>
+    <div class="tree-hud" aria-label="KD-tree controls">
+      <button class="btn btn-secondary" onclick="treeResetView()">Reset</button>
+      <button class="btn btn-secondary" onclick="treeZoomBy(1.15)">Zoom +</button>
+      <button class="btn btn-secondary" onclick="treeZoomBy(0.87)">Zoom −</button>
+      <button class="btn btn-secondary" onclick="treeExpandAll()">Expand</button>
+      <button class="btn btn-secondary" onclick="treeCollapseAll()">Collapse</button>
+    </div>
+    <div class="tree-hint">Wheel: zoom · Drag: pan · Hover: details · Click: expand/collapse</div>
+  </div>
 </div>
 <div class="card">
   <div class="card-title"><span>🔥</span> Regional Heat Map</div>
-  <div class="heat-grid" id="heatGrid"></div>
+  <div class="heat-toolbar">
+    <span style="font-size:.78rem;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase">Metric</span>
+    <button class="btn btn-secondary" id="heatMetricScore" onclick="setHeatMetric('score')">Score</button>
+    <button class="btn btn-secondary" id="heatMetricRes" onclick="setHeatMetric('resource_density')">Resource</button>
+    <button class="btn btn-secondary" id="heatMetricKnow" onclick="setHeatMetric('knowledge_density')">Knowledge</button>
+    <button class="btn btn-secondary" id="heatMetricMil" onclick="setHeatMetric('military_strength')">Military</button>
+    <span style="margin-left:auto;font-size:.78rem;color:var(--text-muted)" id="heatSummary"></span>
+  </div>
+  <div class="heat-grid" id="heatGrid" aria-label="Regional heat map grid"></div>
+  <div class="heat-legend" aria-label="Heat map legend">
+    <span class="heat-legend-label" id="heatLegendMin">Low</span>
+    <div class="heat-legend-bar" aria-hidden="true"></div>
+    <span class="heat-legend-label" id="heatLegendMax">High</span>
+  </div>
 </div>
 
 <!-- ── COMPLEXITY ── -->
@@ -442,18 +577,14 @@ select option{background:#0b1422;}
     <span class="chat-suggestion" onclick="askSuggestion(this)">Which Indian civilizations are included?</span>
     <span class="chat-suggestion" onclick="askSuggestion(this)">KD-Tree vs R-Tree difference?</span>
   </div>
-  <!-- API key row — shown only when key not yet saved -->
-  <div class="chat-key-row" id="chatKeyRow">
-    <span class="chat-key-label">API Key:</span>
-    <input type="password" id="chatApiKey" placeholder="sk-ant-... (saved in browser)">
-    <button class="btn btn-primary" style="padding:.3rem .8rem;font-size:.72rem;white-space:nowrap" onclick="saveApiKey()">Save</button>
-  </div>
   <div class="chat-input-row">
     <textarea id="chatInput" placeholder="Ask about the project..." rows="1"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
     <button id="chatSend" onclick="sendChat()">➤</button>
   </div>
 </div>
+
+</div> <!-- end appWrapper -->
 
 <script>
 // ════════════════════════════════════════════════
@@ -500,6 +631,107 @@ const REGIONS = [
 
 let civilizations = [];
 let customCivs = [];
+
+// Civilization matrix table load state (prevents "loading forever")
+// status: loading | ready | empty | error
+let civTableState = { status: 'loading', message: '' };
+
+// lightweight shared tooltip for heat + tree
+let uiTooltipEl = null;
+function ensureTooltip() {
+  if (uiTooltipEl) return uiTooltipEl;
+  uiTooltipEl = document.createElement('div');
+  uiTooltipEl.className = 'ui-tooltip';
+  uiTooltipEl.id = 'uiTooltip';
+  document.body.appendChild(uiTooltipEl);
+  return uiTooltipEl;
+}
+function showTooltip(html, x, y) {
+  const el = ensureTooltip();
+  el.innerHTML = html;
+  const pad = 14;
+  const w = el.offsetWidth || 320;
+  const h = el.offsetHeight || 120;
+  let left = x + 14, top = y + 14;
+  if (left + w + pad > window.innerWidth) left = Math.max(pad, x - w - 14);
+  if (top + h + pad > window.innerHeight) top = Math.max(pad, y - h - 14);
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  el.classList.add('show');
+}
+function hideTooltip() {
+  if (!uiTooltipEl) return;
+  uiTooltipEl.classList.remove('show');
+}
+
+let authToken = null;
+let currentUser = null;
+let authMode = 'login';
+
+function setAuthTab(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').style.color = mode === 'login' ? 'var(--gold)' : 'var(--text-muted)';
+  document.getElementById('tabLogin').style.borderBottomColor = mode === 'login' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tabRegister').style.color = mode === 'register' ? 'var(--gold)' : 'var(--text-muted)';
+  document.getElementById('tabRegister').style.borderBottomColor = mode === 'register' ? 'var(--gold)' : 'transparent';
+  document.getElementById('landNameGroup').style.display = mode === 'login' ? 'none' : 'block';
+  document.getElementById('landSubmitBtn').innerText = mode === 'login' ? 'Enter Platform' : 'Create Account';
+  document.getElementById('landError').innerText = '';
+}
+
+async function submitLandingAuth() {
+  const email = document.getElementById('landEmail').value;
+  const password = document.getElementById('landPassword').value;
+  const name = document.getElementById('landName').value;
+  const errorDiv = document.getElementById('landError');
+  
+  if (!email || !password || (authMode === 'register' && !name)) {
+    errorDiv.innerText = "Please fill in all fields.";
+    return;
+  }
+  
+  const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
+  const body = authMode === 'login' ? {email, password} : {name, email, password};
+  
+  try {
+    const res = await fetch(API + endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { errorDiv.innerText = data.detail || "Authentication error."; return; }
+    
+    // Success
+    authToken = data.token || data.user_id;
+    currentUser = data.name;
+    document.getElementById('landingPage').style.display = 'none';
+    document.getElementById('appWrapper').style.display = 'block';
+    document.getElementById('userNameDisplay').innerText = currentUser;
+    
+    // Draw tree if we are revealing the app now
+    setTimeout(refreshUI, 100);
+  } catch (e) {
+    errorDiv.innerText = 'Network error: Make sure the FastAPI backend is running.';
+  }
+}
+
+function logout() {
+  authToken = null;
+  currentUser = null;
+  document.getElementById('appWrapper').style.display = 'none';
+  document.getElementById('landingPage').style.display = 'flex';
+  document.getElementById('landPassword').value = '';
+}
+
+// If a user tries an authenticated action while logged out,
+// send them back to the landing auth panel without crashing.
+function showAuthModal(mode = 'login') {
+  try { setAuthTab(mode); } catch (e) {}
+  document.getElementById('appWrapper').style.display = 'none';
+  document.getElementById('landingPage').style.display = 'flex';
+  setTimeout(() => document.getElementById('landEmail')?.focus?.(), 50);
+}
 
 function score(c){ return +((c.resource_density+c.knowledge_density+c.military_strength)/3).toFixed(2); }
 function isIndian(c){ return INDIAN_NAMES.has(c.name) || c.region==='South India'; }
@@ -562,27 +794,40 @@ function setButtonsEnabled(enabled) {
 }
 
 async function loadAllData() {
+  civTableState = { status: 'loading', message: '' };
+  renderTable();
   try {
     const [civData, statsData] = await Promise.all([
-      apiFetch('/api/civilizations'),
-      apiFetch('/api/stats')
+      apiFetch('/api/civilizations'), // GET http://localhost:8080/api/civilizations
+      apiFetch('/api/stats'),
     ]);
-    // Ensure every civ has the required score fields — fill defaults if missing
-    civilizations = civData.map(c => ({
+
+    const normalized = (Array.isArray(civData) ? civData : []).map(c => ({
       ...c,
-      resource_density:  c.resource_density  || 75,
-      knowledge_density: c.knowledge_density || 75,
-      military_strength: c.military_strength || 75,
-      region: c.region || 'South Asia',
+      resource_density:  (c.resource_density  ?? 75),
+      knowledge_density: (c.knowledge_density ?? 75),
+      military_strength: (c.military_strength ?? 75),
+      region: (c.region ?? 'Unknown'),
     }));
+
     const saved = loadFromStorage();
     saved.forEach(sc => {
-      if (!civilizations.find(c => c.name === sc.name)) civilizations.push(sc);
+      if (!normalized.find(c => c.name === sc.name)) normalized.push(sc);
     });
+
+    civilizations = normalized;
+    civTableState =
+      civilizations.length === 0
+        ? { status: 'empty', message: 'No civilizations loaded.' }
+        : { status: 'ready', message: '' };
+
     updateStatusBar(statsData);
-    setTimeout(() => refreshUI(), 100);
-  } catch(e) {
+    setTimeout(() => refreshUI(), 50);
+  } catch (e) {
     console.error('Failed to load data:', e);
+    civilizations = [];
+    civTableState = { status: 'error', message: 'No civilizations loaded. Check backend connection.' };
+    renderTable();
   }
 }
 
@@ -796,7 +1041,8 @@ function popupHTML(c, isCustom) {
         <span style="font-size:.72rem;color:${b.color};font-weight:700;min-width:22px;text-align:right">${b.val}</span></div>`).join('')}
     </div>
     <div class="popup-score" style="color:${col}">Spatial Score: ${s}</div>
-    ${isCustom?'<div style="font-size:.7rem;color:#00b4d8;text-align:center;margin-top:4px">★ Custom Added</div>':''}`;
+    ${c.added_by_name?'<div style="font-size:.7rem;color:#00b4d8;text-align:center;margin-top:4px">★ Added by '+c.added_by_name+'</div>':''}
+    ${isCustom && !c.added_by_name?'<div style="font-size:.7rem;color:#00b4d8;text-align:center;margin-top:4px">★ Custom Added</div>':''}`;
 }
 
 function drawMarkers() {
@@ -804,7 +1050,7 @@ function drawMarkers() {
   let gi=0, ii=0;
   civilizations.forEach((c,idx) => {
     const ind = isIndian(c);
-    const isCustom = idx >= (civilizations.length - customCivs.length);
+    const isCustom = c.added_by_name || idx >= (civilizations.length - customCivs.length);
     const col = ind ? COLORS_INDIAN[ii++%COLORS_INDIAN.length] : COLORS_GLOBAL[gi++%COLORS_GLOBAL.length];
     const m = L.marker([c.latitude, c.longitude], {icon: makeIcon(col, isCustom, ind?12:10), zIndexOffset: ind?100:0})
       .bindPopup(popupHTML(c, isCustom), {maxWidth:260})
@@ -853,6 +1099,37 @@ function cleanupTempLayers() {
 // ════════════════════════════════════════════════
 function renderTable() {
   const body = document.getElementById('civTableBody'); body.innerHTML = '';
+  const empty = document.getElementById('civTableEmpty');
+  const hint = document.getElementById('civTableHint');
+  const table = document.getElementById('civTable');
+  const state = civTableState?.status || 'loading';
+
+  if (state === 'loading') {
+    empty.style.display = 'block';
+    empty.innerHTML = '<span class="spinner"></span> Loading civilizations...';
+    if (table) table.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  if (state === 'error') {
+    empty.style.display = 'block';
+    empty.textContent = civTableState.message || 'No civilizations loaded. Check backend connection.';
+    if (table) table.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  if (!civilizations || civilizations.length === 0) {
+    empty.style.display = 'block';
+    empty.textContent = civTableState.message || 'No civilizations loaded.';
+    if (table) table.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  if (table) table.style.display = '';
   [...civilizations].sort((a,b)=>score(b)-score(a)).forEach(c => {
     const s=score(c), ind=isIndian(c);
     const cls=s>=85?'score-high':s>=77?'score-mid':'score-low';
@@ -865,18 +1142,145 @@ function renderTable() {
     tr.addEventListener('click', () => pulseMarker(c));
     body.appendChild(tr);
   });
+  hint.style.display = civilizations.length > 10 ? 'block' : 'none';
+}
+
+let heatMetric = 'score';
+function setHeatMetric(metric) {
+  heatMetric = metric;
+  const ids = [
+    ['score','heatMetricScore'],
+    ['resource_density','heatMetricRes'],
+    ['knowledge_density','heatMetricKnow'],
+    ['military_strength','heatMetricMil'],
+  ];
+  ids.forEach(([m,id])=>{
+    const b = document.getElementById(id);
+    const active = m === metric;
+    b.style.borderColor = active ? '#c9a84c' : '';
+    b.style.color = active ? '#c9a84c' : '';
+  });
+  renderHeat();
+}
+
+function metricLabel(m) {
+  if (m === 'resource_density') return 'Resource';
+  if (m === 'knowledge_density') return 'Knowledge';
+  if (m === 'military_strength') return 'Military';
+  return 'Score';
+}
+
+function heatColor(t) {
+  // cinematic teal → gold → ember ramp (theme-friendly)
+  const clamp = (x)=>Math.max(0,Math.min(1,x));
+  t = clamp(t);
+  // blend in 2 segments: 0..0.55 teal->gold, 0.55..1 gold->ember
+  if (t < 0.55) {
+    const u = t / 0.55;
+    const r = Math.round(13 + u * (201-13));
+    const g = Math.round(74 + u * (168-74));
+    const b = Math.round(110 + u * (76-110));
+    return {bg:`rgba(${r},${g},${b},.30)`, border:`rgba(${r},${g},${b},.55)`, text:'#e8e0d0'};
+  } else {
+    const u = (t-0.55)/0.45;
+    const r = Math.round(201 + u * (255-201));
+    const g = Math.round(168 + u * (107-168));
+    const b = Math.round(76 + u * (53-76));
+    return {bg:`rgba(${r},${g},${b},.32)`, border:`rgba(${r},${g},${b},.58)`, text:'#ffe8b5'};
+  }
+}
+
+function regionStats(regionCivs) {
+  const avg = (arr)=>arr.reduce((a,b)=>a+b,0)/(arr.length||1);
+  const sAvg = avg(regionCivs.map(c=>score(c)));
+  const resAvg = avg(regionCivs.map(c=>+c.resource_density||0));
+  const knowAvg = avg(regionCivs.map(c=>+c.knowledge_density||0));
+  const milAvg = avg(regionCivs.map(c=>+c.military_strength||0));
+  const count = regionCivs.length;
+  return {
+    count,
+    score: +sAvg.toFixed(1),
+    resource_density: +resAvg.toFixed(1),
+    knowledge_density: +knowAvg.toFixed(1),
+    military_strength: +milAvg.toFixed(1),
+  };
 }
 
 function renderHeat() {
-  const byR = {};
-  civilizations.forEach(c => (byR[c.region]=byR[c.region]||[]).push(score(c)));
-  const entries = Object.entries(byR).map(([r,sc])=>[r,+(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1)]);
-  const mx=Math.max(...entries.map(e=>e[1])), mn=Math.min(...entries.map(e=>e[1]));
-  document.getElementById('heatGrid').innerHTML = entries.sort((a,b)=>b[1]-a[1]).map(([region,avg])=>{
-    const t=(avg-mn)/(mx-mn||1),r=Math.round(180*t+30),g=Math.round(80*(1-t)+40*t);
-    return `<div class="heat-cell" style="background:rgba(${r},${g},40,.75);border:1px solid rgba(${r+40},${g+20},40,.5)">
-      <div class="heat-name">${region}</div><div class="heat-score">${avg}</div></div>`;
-  }).join('');
+  const grid = document.getElementById('heatGrid');
+  const summary = document.getElementById('heatSummary');
+  const minEl = document.getElementById('heatLegendMin');
+  const maxEl = document.getElementById('heatLegendMax');
+  if (!civilizations || !civilizations.length) {
+    grid.innerHTML = `<div class="table-empty" style="grid-column:1/-1"><span class="spinner"></span> Loading heat map...</div>`;
+    summary.textContent = '';
+    minEl.textContent = 'Low';
+    maxEl.textContent = 'High';
+    return;
+  }
+
+  const byR = new Map();
+  civilizations.forEach(c => {
+    const r = (c.region || 'Unknown').trim() || 'Unknown';
+    if (!byR.has(r)) byR.set(r, []);
+    byR.get(r).push(c);
+  });
+
+  const entries = [...byR.entries()].map(([region, civs]) => ({ region, civs, stats: regionStats(civs) }));
+  const values = entries.map(e => e.stats[heatMetric === 'score' ? 'score' : heatMetric]);
+  const mx = Math.max(...values), mn = Math.min(...values);
+  const fmt = (v)=>Number.isFinite(v) ? v.toFixed(1) : '—';
+
+  minEl.textContent = `${metricLabel(heatMetric)} min: ${fmt(mn)}`;
+  maxEl.textContent = `${metricLabel(heatMetric)} max: ${fmt(mx)}`;
+  summary.textContent = `${entries.length} regions · ${civilizations.length} civilizations`;
+
+  grid.innerHTML = entries
+    .sort((a,b)=>(b.stats[heatMetric==='score'?'score':heatMetric] - a.stats[heatMetric==='score'?'score':heatMetric]))
+    .map(({region,civs,stats})=>{
+      const v = stats[heatMetric === 'score' ? 'score' : heatMetric];
+      const t = (v - mn) / (mx - mn || 1);
+      const col = heatColor(t);
+      const best = [...civs].sort((a,b)=>score(b)-score(a))[0];
+      const worst = [...civs].sort((a,b)=>score(a)-score(b))[0];
+      const tip = `
+        <div class="tt-title">🔥 ${region}</div>
+        <div class="tt-grid">
+          <div class="tt-row"><span class="tt-k">Count</span><span><code>${stats.count}</code></span></div>
+          <div class="tt-row"><span class="tt-k">Avg Score</span><span><code>${stats.score}</code></span></div>
+          <div class="tt-row"><span class="tt-k">Avg Resource</span><span><code>${stats.resource_density}</code></span></div>
+          <div class="tt-row"><span class="tt-k">Avg Knowledge</span><span><code>${stats.knowledge_density}</code></span></div>
+          <div class="tt-row"><span class="tt-k">Avg Military</span><span><code>${stats.military_strength}</code></span></div>
+          <div class="tt-row" style="grid-column:1/-1"><span class="tt-k">Top</span><span style="text-align:right"><code>${best?.name||'—'}</code></span></div>
+          <div class="tt-row" style="grid-column:1/-1"><span class="tt-k">Low</span><span style="text-align:right"><code>${worst?.name||'—'}</code></span></div>
+        </div>
+      `.trim();
+      return `
+        <div class="heat-cell"
+          data-region="${region.replace(/"/g,'&quot;')}"
+          data-tooltip="${tip.replace(/"/g,'&quot;')}"
+          style="background:${col.bg};border:1px solid ${col.border};box-shadow:0 0 18px rgba(201,168,76,.06) inset">
+          <div class="heat-name" style="color:${col.text}">${region}</div>
+          <div class="heat-score" style="color:${col.text}">${fmt(v)}</div>
+          <div style="margin-top:.35rem;font-size:.72rem;color:rgba(122,143,166,.95)">avg ${metricLabel(heatMetric)}</div>
+        </div>
+      `;
+    }).join('');
+
+  // hover tooltips
+  [...grid.querySelectorAll('.heat-cell')].forEach(el=>{
+    el.addEventListener('mousemove', (e)=>{
+      const html = el.getAttribute('data-tooltip');
+      if (html) showTooltip(html, e.clientX, e.clientY);
+    });
+    el.addEventListener('mouseleave', hideTooltip);
+    el.addEventListener('click', ()=>{
+      // Clicking region: zoom to its bounding box if known
+      const region = el.getAttribute('data-region') || '';
+      const reg = REGIONS.find(r=>r.label === region);
+      if (reg && lmap) lmap.fitBounds(reg.bounds, {padding:[40,40]});
+    });
+  });
 }
 
 function renderComplexity(stats) {
@@ -894,28 +1298,276 @@ function renderComplexity(stats) {
     <span class="bar-val">${b.val}</span></div>`).join('');
 }
 
+// ── KD-Tree Visualizer (interactive canvas with pan/zoom + hit testing) ──
+const TREE = {
+  view: { scale: 1.0, tx: 0, ty: 0, minScale: 0.65, maxScale: 2.8 },
+  layout: { levelGap: 78, minSpread: 56, maxNodes: 400 },
+  state: { collapsed: new Set(), hoverKey: null, down: null, lastPointer: null },
+  cache: { nodes: [], root: null, ready: false },
+};
+
+function treeKey(c) { return `${c.name}@@${c.latitude}@@${c.longitude}`; }
+function treeMetricLine(c) {
+  return `Res ${c.resource_density} · Know ${c.knowledge_density} · Mil ${c.military_strength} · Score ${score(c)}`;
+}
+function buildVizTree(pts, depth=0) {
+  if (!pts.length) return null;
+  const axis = depth % 2;
+  pts.sort((a,b)=>axis ? (a.longitude - b.longitude) : (a.latitude - b.latitude));
+  const m = Math.floor(pts.length/2);
+  const c = pts[m];
+  return {
+    c,
+    key: treeKey(c),
+    depth,
+    axis,
+    left: buildVizTree(pts.slice(0,m), depth+1),
+    right: buildVizTree(pts.slice(m+1), depth+1),
+  };
+}
+
+function computeTreeLayout(root, W) {
+  const nodes = [];
+  const levelGap = TREE.layout.levelGap;
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const baseSpread = clamp(W*0.42, 220, 640);
+
+  function visit(node, x, y, spread) {
+    if (!node) return;
+    const collapsed = TREE.state.collapsed.has(node.key);
+    nodes.push({ node, x, y, depth: node.depth, collapsed });
+    if (collapsed) return;
+    const cy = y + levelGap;
+    const half = Math.max(TREE.layout.minSpread, spread/2);
+    visit(node.left, x - half, cy, half);
+    visit(node.right, x + half, cy, half);
+  }
+  visit(root, W/2, 42, baseSpread);
+  TREE.cache.nodes = nodes.slice(0, TREE.layout.maxNodes);
+}
+
+function treeToScreen(x, y) {
+  const v = TREE.view;
+  return { x: x*v.scale + v.tx, y: y*v.scale + v.ty };
+}
+function screenToTree(x, y) {
+  const v = TREE.view;
+  return { x: (x - v.tx)/v.scale, y: (y - v.ty)/v.scale };
+}
+
+function pickNodeAt(screenX, screenY) {
+  // Use screen-space hit testing so it matches drawing radius.
+  const v = TREE.view;
+  const r = 22 * Math.max(0.85, Math.min(1.35, v.scale));
+  // iterate reverse so deeper nodes "win"
+  for (let i = TREE.cache.nodes.length - 1; i >= 0; i--) {
+    const n = TREE.cache.nodes[i];
+    const scr = treeToScreen(n.x, n.y);
+    const dx = screenX - scr.x, dy = screenY - scr.y;
+    if (dx*dx + dy*dy <= r*r) return n;
+  }
+  return null;
+}
+
+function treeResetView() {
+  TREE.view.scale = 1.0;
+  TREE.view.tx = 0;
+  TREE.view.ty = 0;
+  drawTree();
+}
+function treeZoomBy(factor, anchorScreen=null) {
+  const v = TREE.view;
+  const old = v.scale;
+  const next = Math.max(v.minScale, Math.min(v.maxScale, old * factor));
+  const a = anchorScreen || {x: (document.getElementById('treeCanvas').width/2), y: 140};
+  const before = screenToTree(a.x, a.y);
+  v.scale = next;
+  const after = treeToScreen(before.x, before.y);
+  v.tx += (a.x - after.x);
+  v.ty += (a.y - after.y);
+  drawTree();
+}
+function treeCollapseAll() {
+  // collapse everything except root
+  TREE.state.collapsed = new Set(TREE.cache.nodes.map(n=>n.node.key));
+  if (TREE.cache.root) TREE.state.collapsed.delete(TREE.cache.root.key);
+  drawTree();
+}
+function treeExpandAll() {
+  TREE.state.collapsed.clear();
+  drawTree();
+}
+
+function treeTooltipHTML(c) {
+  const ind = isIndian(c);
+  const s = score(c);
+  return `
+    <div class="tt-title">🌲 ${ind?'🇮🇳 ':''}${c.name}</div>
+    <div class="tt-grid">
+      <div class="tt-row"><span class="tt-k">Region</span><span><code>${c.region||'—'}</code></span></div>
+      <div class="tt-row"><span class="tt-k">Lat</span><span><code>${(+c.latitude).toFixed(3)}°</code></span></div>
+      <div class="tt-row"><span class="tt-k">Lon</span><span><code>${(+c.longitude).toFixed(3)}°</code></span></div>
+      <div class="tt-row"><span class="tt-k">Resource</span><span><code>${c.resource_density}</code></span></div>
+      <div class="tt-row"><span class="tt-k">Knowledge</span><span><code>${c.knowledge_density}</code></span></div>
+      <div class="tt-row"><span class="tt-k">Military</span><span><code>${c.military_strength}</code></span></div>
+      <div class="tt-row" style="grid-column:1/-1"><span class="tt-k">Score</span><span style="text-align:right"><code>${s}</code></span></div>
+    </div>
+  `.trim();
+}
+
 function drawTree() {
-  const cv=document.getElementById('treeCanvas');
-  cv.width=cv.offsetWidth; cv.height=320;
-  const ctx=cv.getContext('2d'),W=cv.width,H=320;
-  ctx.fillStyle='#071428'; ctx.fillRect(0,0,W,H);
-  if (!civilizations.length) { ctx.fillStyle='#7a8fa6'; ctx.font='14px Rajdhani'; ctx.textAlign='center'; ctx.fillText('Loading civilizations...',W/2,H/2); return; }
-  // Build a local tree for visualization only
-  function buildViz(pts,d=0){ if(!pts.length)return null; const ax=d%2; pts.sort((a,b)=>ax?a.longitude-b.longitude:a.latitude-b.latitude); const m=Math.floor(pts.length/2),nd={c:pts[m],left:null,right:null}; nd.left=buildViz(pts.slice(0,m),d+1); nd.right=buildViz(pts.slice(m+1),d+1); return nd; }
-  const root=buildViz([...civilizations],0);
-  const nodes=[];
-  function collect(node,x,y,spread,d){ if(!node)return; nodes.push({node,x,y,d}); const cy=y+46,half=spread/2; if(node.left){ctx.strokeStyle='rgba(201,168,76,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-half,cy);ctx.stroke();collect(node.left,x-half,cy,half,d+1);} if(node.right){ctx.strokeStyle='rgba(0,180,216,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+half,cy);ctx.stroke();collect(node.right,x+half,cy,half,d+1);} }
-  collect(root,W/2,25,W/2.2,0);
-  nodes.forEach(({node,x,y,d})=>{
-    const ind=isIndian(node.c),col=d%2===0?'#c9a84c':'#00b4d8';
-    ctx.fillStyle=ind?'rgba(249,115,22,.18)':col+'22'; ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=ind?'#f97316':col; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.stroke();
-    ctx.fillStyle='#e8e0d0'; ctx.font='bold 6px Rajdhani'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(node.c.name.split(' ')[0].slice(0,7),x,y);
+  const cv = document.getElementById('treeCanvas');
+  const parentW = cv.offsetWidth || 520;
+  cv.width = Math.max(320, parentW);
+  cv.height = 360;
+
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#071428';
+  ctx.fillRect(0,0,W,H);
+
+  if (!civilizations || !civilizations.length) {
+    ctx.fillStyle = '#7a8fa6';
+    ctx.font = '15px Rajdhani';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading KD-tree...', W/2, H/2);
+    TREE.cache.ready = false;
+    return;
+  }
+
+  // build cached root if needed
+  TREE.cache.root = buildVizTree([...civilizations], 0);
+  computeTreeLayout(TREE.cache.root, W);
+  TREE.cache.ready = true;
+
+  // draw edges first
+  const v = TREE.view;
+  // Radius in screen pixels (scaled for readability).
+  const r = 22 * Math.max(0.85, Math.min(1.35, v.scale));
+  const edge = (from,to,axisColor,dim)=> {
+    const a = treeToScreen(from.x, from.y);
+    const b = treeToScreen(to.x, to.y);
+    ctx.strokeStyle = dim ? 'rgba(255,255,255,.10)' : axisColor;
+    ctx.lineWidth = dim ? 1.1 : 1.6;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  };
+
+  const index = new Map(TREE.cache.nodes.map(n=>[n.node.key, n]));
+  TREE.cache.nodes.forEach(n=>{
+    if (n.collapsed) return;
+    const node = n.node;
+    const axisCol = node.axis === 0 ? 'rgba(201,168,76,.35)' : 'rgba(0,180,216,.33)';
+    if (node.left && index.has(node.left.key)) edge(n, index.get(node.left.key), axisCol, false);
+    if (node.right && index.has(node.right.key)) edge(n, index.get(node.right.key), axisCol, false);
   });
-  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.fillStyle='rgba(201,168,76,.6)'; ctx.font='10px Rajdhani'; ctx.fillText('● Lat-axis',10,H-26);
-  ctx.fillStyle='rgba(0,180,216,.6)';  ctx.fillText('● Lon-axis',10,H-13);
+
+  // draw nodes
+  TREE.cache.nodes.forEach(n=>{
+    const c = n.node.c;
+    const ind = isIndian(c);
+    const hover = TREE.state.hoverKey === n.node.key;
+    const scr = treeToScreen(n.x, n.y);
+    const axisCol = n.node.axis === 0 ? '#c9a84c' : '#00b4d8';
+    const fill = ind ? 'rgba(249,115,22,.22)' : (n.node.axis === 0 ? 'rgba(201,168,76,.18)' : 'rgba(0,180,216,.16)');
+    const stroke = ind ? '#f97316' : axisCol;
+
+    // outer glow on hover
+    if (hover) {
+      ctx.beginPath();
+      ctx.arc(scr.x, scr.y, r+7, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(201,168,76,.08)';
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(scr.x, scr.y, r, 0, Math.PI*2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = hover ? 2.4 : 1.6;
+    ctx.stroke();
+
+    // collapsed marker
+    if (n.collapsed) {
+      ctx.fillStyle = 'rgba(255,255,255,.75)';
+      ctx.beginPath();
+      ctx.arc(scr.x + r*0.65, scr.y - r*0.65, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // label
+    const label = (c.name || '').split(' ').slice(0,2).join(' ');
+    ctx.fillStyle = '#e8e0d0';
+    const fontPx = Math.round(Math.max(11, Math.min(18, 11*v.scale)));
+    ctx.font = `700 ${fontPx}px Rajdhani`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label.slice(0,14), scr.x, scr.y);
+  });
+
+  // legend
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '11px Rajdhani';
+  ctx.fillStyle = 'rgba(201,168,76,.75)';
+  ctx.fillText('● Lat-axis split', 12, H-24);
+  ctx.fillStyle = 'rgba(0,180,216,.75)';
+  ctx.fillText('● Lon-axis split', 12, H-10);
+}
+
+function initTreeInteractions() {
+  const cv = document.getElementById('treeCanvas');
+  if (!cv) return;
+
+  const setDrag = (on)=>cv.classList.toggle('dragging', on);
+
+  cv.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.90;
+    treeZoomBy(factor, {x: e.offsetX, y: e.offsetY});
+  }, { passive:false });
+
+  cv.addEventListener('pointerdown', (e)=>{
+    cv.setPointerCapture(e.pointerId);
+    TREE.state.down = { x: e.clientX, y: e.clientY, tx: TREE.view.tx, ty: TREE.view.ty, time: performance.now() };
+    TREE.state.lastPointer = { x: e.clientX, y: e.clientY };
+    setDrag(true);
+  });
+
+  cv.addEventListener('pointermove', (e)=>{
+    const picked = TREE.cache.ready ? pickNodeAt(e.offsetX, e.offsetY) : null;
+    TREE.state.hoverKey = picked ? picked.node.key : null;
+    if (picked) showTooltip(treeTooltipHTML(picked.node.c), e.clientX, e.clientY);
+    else hideTooltip();
+
+    if (!TREE.state.down) { drawTree(); return; }
+    const dx = e.clientX - TREE.state.down.x;
+    const dy = e.clientY - TREE.state.down.y;
+    TREE.view.tx = TREE.state.down.tx + dx;
+    TREE.view.ty = TREE.state.down.ty + dy;
+    drawTree();
+  });
+
+  const end = (e)=>{
+    setDrag(false);
+    if (!TREE.state.down) return;
+    const dt = performance.now() - TREE.state.down.time;
+    const moved = Math.hypot(e.clientX - TREE.state.down.x, e.clientY - TREE.state.down.y);
+    const clicky = moved < 6 && dt < 450;
+    TREE.state.down = null;
+    if (!clicky) return;
+
+    const picked = TREE.cache.ready ? pickNodeAt(e.offsetX, e.offsetY) : null;
+    if (!picked) return;
+    const key = picked.node.key;
+    if (TREE.state.collapsed.has(key)) TREE.state.collapsed.delete(key);
+    else TREE.state.collapsed.add(key);
+    drawTree();
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('mouseleave', ()=>{ hideTooltip(); TREE.state.hoverKey=null; drawTree(); });
 }
 
 function populateSelects() {
@@ -928,22 +1580,42 @@ function populateSelects() {
 //  ADD CIVILIZATION (stored locally until CSV export)
 // ════════════════════════════════════════════════
 function addCivilization() {
+  if (!authToken) {
+    alert("Please login first to add a civilization.");
+    return;
+  }
   const name=document.getElementById('civName').value.trim();
   const lat=+document.getElementById('civLat').value, lon=+document.getElementById('civLon').value;
   const region=document.getElementById('civRegion').value.trim()||'Unknown';
   const res=+document.getElementById('civRes').value||75, know=+document.getElementById('civKnow').value||75, mil=+document.getElementById('civMil').value||75;
   if(!name||isNaN(lat)||isNaN(lon)){alert('Enter Name, Latitude, Longitude.');return;}
   if(civilizations.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert(`"${name}" already exists.`);return;}
-  const civ={name,latitude:lat,longitude:lon,start_year:0,end_year:0,region,resource_density:res,knowledge_density:know,military_strength:mil};
-  civilizations.push(civ);
-  customCivs.push(civ);
-  saveToStorage();
-  refreshUI();
-  lmap.setView([lat,lon],6,{animate:true});
-  setTimeout(()=>markerRefs[name]&&markerRefs[name].openPopup(),600);
-  const out=document.getElementById('addOutput'); out.style.display='block';
-  out.innerHTML=`<span class="ok">✔ ${name} added to frontend KD-Tree.</span>\nScore: ${score(civ)}\n<span class="inf">⚠ To add to C++ backend: Export CSV → restart server.</span>`;
-  ['civName','civLat','civLon','civRegion','civRes','civKnow','civMil'].forEach(id=>document.getElementById(id).value='');
+  
+  const payload = {
+    name, lat, lon, region, resource:res, knowledge:know, military:mil, token:authToken
+  };
+  
+  fetch(API + '/api/civilizations', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(async res => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Error adding civilization");
+    
+    // Add locally immediately
+    const civ = data.civilization;
+    civilizations.push(civ);
+    
+    refreshUI();
+    lmap.setView([lat,lon],6,{animate:true});
+    setTimeout(()=>markerRefs[name]&&markerRefs[name].openPopup(),600);
+    const out=document.getElementById('addOutput'); out.style.display='block';
+    out.innerHTML=`<span class="ok">✔ ${name} added to KD-Tree & Database.</span>\nScore: ${score(civ)}`;
+    ['civName','civLat','civLon','civRegion','civRes','civKnow','civMil'].forEach(id=>document.getElementById(id).value='');
+  }).catch(e => {
+    alert(e.message);
+  });
 }
 
 // ════════════════════════════════════════════════
@@ -955,7 +1627,9 @@ function loadFromStorage(){ try{ const r=localStorage.getItem(SK); return r?JSON
 function clearCustomCivs(){
   const n=customCivs.length; if(!n){document.getElementById('storageStatus').innerHTML='ℹ️ No custom civs.';return;}
   if(!confirm(`Remove ${n} custom civilization(s)?`))return;
-  customCivs=[]; civilizations=civilizations.filter(c=>!customCivs.includes(c));
+  const names = new Set(customCivs.map(c=>c.name));
+  civilizations = civilizations.filter(c => !names.has(c.name));
+  customCivs = [];
   localStorage.removeItem(SK);
   loadAllData().then(refreshUI);
   document.getElementById('storageStatus').innerHTML='🗑️ Cleared.';
@@ -1031,6 +1705,10 @@ async function loadFallbackData() {
   });
 
   const n = civilizations.length;
+  civTableState =
+    n === 0
+      ? { status: 'empty', message: 'No civilizations loaded.' }
+      : { status: 'ready', message: '' };
   const logN = Math.ceil(Math.log2(n));
   updateStatusBar({
     total_civilizations: n,
@@ -1048,10 +1726,10 @@ async function loadFallbackData() {
 //  REFRESH UI
 // ════════════════════════════════════════════════
 function refreshUI() {
-  if (!civilizations.length) return;
   drawMarkers();
   renderTable();
-  renderHeat();
+  if (!heatMetric) heatMetric = 'score';
+  setHeatMetric(heatMetric);
   populateSelects();
   // drawTree needs the canvas to have a real width — use requestAnimationFrame
   requestAnimationFrame(() => {
@@ -1065,7 +1743,7 @@ function refreshUI() {
 //  AI CHAT — smart local answers + optional API
 // ════════════════════════════════════════════════
 let chatOpen = false, chatHistory = [];
-const CHAT_KEY_STORAGE = 'civ_chat_api_key';
+const CHAT_KEY_STORAGE = 'civ_gemini_key';
 
 // Smart local knowledge base — answers common questions without any API key
 function localAnswer(q) {
@@ -1108,19 +1786,8 @@ function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chatWindow').classList.toggle('open', chatOpen);
   if (chatOpen) {
-    const hasKey = !!localStorage.getItem(CHAT_KEY_STORAGE);
-    document.getElementById('chatKeyRow').style.display = hasKey ? 'none' : 'flex';
     document.getElementById('chatInput').focus();
   }
-}
-
-function saveApiKey() {
-  const val = document.getElementById('chatApiKey').value.trim();
-  if (!val) return;
-  localStorage.setItem(CHAT_KEY_STORAGE, val);
-  document.getElementById('chatKeyRow').style.display = 'none';
-  document.getElementById('chatApiKey').value = '';
-  appendMsg('✅ API key saved. Full AI mode enabled — ask me anything!', 'assistant');
 }
 
 function askSuggestion(el) {
@@ -1139,67 +1806,58 @@ async function sendChat() {
   appendMsg(text, 'user');
   chatHistory.push({ role: 'user', content: text });
 
-  // Try local knowledge base first — works with no API key
-  const local = localAnswer(text);
-  if (local) {
-    setTimeout(() => {
-      appendMsg(local.replace(/\n/g, '<br>'), 'assistant', null, true);
-      chatHistory.push({ role: 'assistant', content: local });
-      document.getElementById('chatSend').disabled = false;
-    }, 300);
-    return;
-  }
-
   const tid = 't' + Date.now();
   appendMsg('Thinking', 'assistant thinking', tid);
 
   try {
-    let reply;
+    // Prefer backend AI. If backend/AI is unavailable, fall back to localAnswer().
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
     const resp = await fetch(API + '/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1) }),
-    });
-    if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
-    const data = await resp.json();
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        // keep short history to stay fast; backend also has project context
+        history: chatHistory.slice(-8, -1),
+      }),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
-    // If backend handled it locally, use that. Otherwise call Claude.
-    if (data.response) {
-        reply = data.response;
+    let reply = '';
+    if (resp.ok) {
+      const data = await resp.json();
+      reply = data.reply || '';
+      if (!data.ok) {
+        // backend responded but AI not configured / failed
+        const local = localAnswer(text);
+        if (local) reply = local + `\n\n(Offline fallback — AI unavailable: ${data.error || 'unknown'})`;
+        else reply = (reply || 'AI is currently unavailable. Please try again later.');
+      }
     } else {
-        const apiKey = localStorage.getItem('civ_chat_api_key');
-        if (!apiKey) {
-            reply = "For general questions, paste your Anthropic API key in the field above.";
-        } else {
-            const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 500,
-                    system: "You are a Spatial Intelligence Assistant for the Civilization Mapper project. It uses KD-Tree, R-Tree, FastAPI backend, and a Leaflet map frontend with ~47 civilizations (Indian + global). Answer questions about the project, civilizations, history, or anything else concisely.",
-                    messages: chatHistory
-                })
-            });
-            const aiData = await aiResp.json();
-            reply = aiData.content?.[0]?.text || 'No response from AI.';
-        }
+      const local = localAnswer(text);
+      if (local) reply = local + `\n\n(Offline fallback — backend error ${resp.status})`;
+      else reply = `⚠️ Chat backend error (${resp.status}). Please ensure FastAPI is running on ${API}.`;
     }
+
     document.getElementById(tid)?.remove();
-    const rendered = reply
+    const rendered = (reply || "I'm not sure how to answer that yet. Try asking about KD-Trees, range queries, DBSCAN, or any general question.")
       .replace(/```([\s\S]*?)```/g, '<code style="display:block;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:4px;font-size:.78rem;margin:4px 0;white-space:pre-wrap;color:#4ade80">$1</code>')
       .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;font-size:.82rem;color:#00b4d8">$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
     appendMsg(rendered, 'assistant', null, true);
-    chatHistory.push({ role: 'assistant', content: reply });
+    chatHistory.push({ role: 'assistant', content: reply || '' });
   } catch (e) {
     document.getElementById(tid)?.remove();
-    appendMsg(`⚠️ ${e.message}`, 'assistant');
+    const local = localAnswer(text);
+    if (local) {
+      appendMsg(local.replace(/\n/g, '<br>') + '<br><br><span style="color:#7a8fa6">(Offline fallback — could not reach backend/AI)</span>', 'assistant', null, true);
+      chatHistory.push({ role: 'assistant', content: local });
+    } else {
+      const msg = (e && e.name === 'AbortError') ? 'Request timed out.' : (e?.message || 'Unknown error');
+      appendMsg(`⚠️ ${msg}<br><br><span style="color:#7a8fa6">Tip: Start the backend: <code>cd backend && uvicorn main:app --reload --port 8080</code></span>`, 'assistant', null, true);
+    }
   }
   document.getElementById('chatSend').disabled = false;
 }
@@ -1219,9 +1877,11 @@ function appendMsg(content, cls, id = null, isHTML = false) {
 // ════════════════════════════════════════════════
 window.addEventListener('load', async () => {
   initMap();
+  initTreeInteractions();
   customCivs = loadFromStorage();
   toggleQueryFields();
   setMapMode('nearest');
+  setHeatMetric('score');
 
   // ── Step 1: render immediately with built-in data so nothing is blank ──
   await loadFallbackData();   // populates civilizations + calls refreshUI

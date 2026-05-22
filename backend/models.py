@@ -5,7 +5,7 @@ Data models shared across the backend.
 
 class Civilization:
     def __init__(self, name, lat, lon, start=0, end=0, region="",
-                 resource=50.0, knowledge=50.0, military=50.0):
+                 resource=50.0, knowledge=50.0, military=50.0, added_by_name=None):
         self.name = name
         self.latitude = float(lat)
         self.longitude = float(lon)
@@ -15,6 +15,7 @@ class Civilization:
         self.resource_density = float(resource)
         self.knowledge_density = float(knowledge)
         self.military_strength = float(military)
+        self.added_by_name = added_by_name
 
     def spatial_score(self) -> float:
         return round(
@@ -22,7 +23,7 @@ class Civilization:
         )
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "name": self.name,
             "latitude": self.latitude,
             "longitude": self.longitude,
@@ -34,6 +35,9 @@ class Civilization:
             "military_strength": self.military_strength,
             "spatial_score": self.spatial_score(),
         }
+        if self.added_by_name:
+            d["added_by_name"] = self.added_by_name
+        return d
 
 
 class ClusterResult:

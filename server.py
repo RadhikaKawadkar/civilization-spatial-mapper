@@ -243,7 +243,7 @@ class Handler(BaseHTTPRequestHandler):
     def send_cors_headers(self):
         # CORS — allows the HTML frontend to call this server
         self.send_header("Access-Control-Allow-Origin",  "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
     def send_json(self, data, status=200):
@@ -303,7 +303,7 @@ class Handler(BaseHTTPRequestHandler):
                     headers = {
                         "Content-Type":      "application/json",
                         "anthropic-version": "2023-06-01",
-                        "x-api-key":         "PASTE_YOUR_API_KEY_HERE"
+                        "x-api-key":         os.environ.get("ANTHROPIC_API_KEY", "PASTE_YOUR_API_KEY_HERE")
                     }
                 )
                 with urlreq.urlopen(req, timeout=15) as r:

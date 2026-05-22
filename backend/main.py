@@ -23,20 +23,20 @@
 import os
 import math
 import subprocess
-import asyncio
-from datetime import datetime
+import httpx
 from pathlib import Path
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
 from models import Civilization, ClusterResult
 from kdtree import KDTree
 from rtree_index import RTreeIndex
 from loader import load_civilizations
 from clustering import dbscan
+from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations
+import hashlib
 
 load_dotenv()
 
@@ -60,7 +60,19 @@ DATA_CSV = Path(__file__).parent.parent / "data" / "final_dataset.csv"
 CIVS_CSV = Path(__file__).parent.parent / "civilizations.csv"
 CPP_EXE  = Path(__file__).parent.parent / "mapper.exe"
 
+init_db()
+
 all_civs: list[Civilization] = load_civilizations(str(CIVS_CSV) if CIVS_CSV.exists() else str(DATA_CSV))
+
+custom_rows = get_custom_civilizations()
+for row in custom_rows:
+    c = Civilization(
+        name=row["name"], lat=row["lat"], lon=row["lon"],
+        start=row["start_year"], end=row["end_year"], region=row["region"],
+        resource=row["resource_density"], knowledge=row["knowledge_density"],
+        military=row["military_strength"], added_by_name=row["added_by_name"]
+    )
+    all_civs.append(c)
 
 kd_tree = KDTree()
 kd_tree.build(all_civs)
@@ -68,9 +80,9 @@ kd_tree.build(all_civs)
 r_tree = RTreeIndex()
 r_tree.add_default_regions()
 
-print(f"Loaded {len(all_civs)} civilizations")
-print(f"KD-Tree built: {kd_tree.node_count} nodes")
-print(f"R-Tree built:  {len(r_tree.regions)} regions")
+print(f"[OK] Loaded {len(all_civs)} civilizations")
+print(f"[OK] KD-Tree built: {kd_tree.node_count} nodes")
+print(f"[OK] R-Tree built:  {len(r_tree.regions)} regions")
 
 
 # ── Routes ─────────────────────────────────────────────────────
@@ -119,6 +131,60 @@ def run_cpp_engine():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/register")
+def register(req: RegisterRequest):
+    user_id = create_user(req.name, req.email, req.password)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    return {"message": "User created", "user_id": user_id, "name": req.name}
+
+@app.post("/api/login")
+def login(req: LoginRequest):
+    user = get_user_by_email(req.email)
+    if not user or user["password_hash"] != hashlib.sha256(req.password.encode()).hexdigest():
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    return {"message": "Login successful", "token": user["id"], "name": user["name"]}
+
+class CivilizationRequest(BaseModel):
+    name: str
+    lat: float
+    lon: float
+    region: str
+    resource: float
+    knowledge: float
+    military: float
+    token: int
+
+@app.post("/api/civilizations")
+def post_civilization(req: CivilizationRequest):
+    user = get_user_by_id(req.token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    civ_id = add_custom_civilization(
+        req.name, req.lat, req.lon, req.region,
+        req.resource, req.knowledge, req.military, user["id"]
+    )
+    if not civ_id:
+        raise HTTPException(status_code=400, detail="Civilization name already exists")
+    
+    c = Civilization(
+        name=req.name, lat=req.lat, lon=req.lon,
+        region=req.region, resource=req.resource, knowledge=req.knowledge,
+        military=req.military, added_by_name=user["name"]
+    )
+    all_civs.append(c)
+    kd_tree.build(all_civs)
+    return {"message": "Civilization added", "civilization": c.to_dict()}
 
 @app.get("/api/civilizations")
 def get_civilizations():
@@ -239,95 +305,121 @@ def stats():
     }
 
 
-# ── Chat endpoint ───────────────────────────────────────────────
+# ── Chat endpoint (Gemini) ──────────────────────────────────────
+
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = []
+
+class ChatResponse(BaseModel):
+    reply: str
+    ok: bool = True
+    model: str | None = None
+    error: str | None = None
+
+CHAT_SYSTEM = """You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" project.
+
+PROJECT CONTEXT:
+- A spatial data system indexing historical civilizations by latitude, longitude, and time
+- C++ core: KD-Tree (insertion, nearest neighbor O(log n), range search O(log n+k)), R-Tree (bounding box regions)
+- FastAPI Python backend exposing: /run, /api/civilizations, /api/nearest, /api/range, /api/cluster, /api/compare, /api/rtree, /api/stats
+- DBSCAN clustering built on top of KD-Tree range search (no external libraries)
+- Leaflet.js frontend with CARTO Dark tiles, live map click queries
+- Dataset: 47 Indian civilizations from final_dataset.csv
+
+You are a general-purpose AI assistant. You can answer ANY question — about this project, history, geography, programming, algorithms, data structures, or any other topic. When questions relate to the project, give specific technical answers. For general questions, answer helpfully and thoroughly.
+
+Be concise, friendly, and technically accurate."""
+
 
 @app.post("/api/chat")
-async def chat(req: dict):
-    raw_message = req.get("message", "").strip()
-    message = raw_message.lower()
+async def chat(req: ChatRequest) -> ChatResponse:
+    """
+    Proxy chat requests to Gemini API (key stored server-side).
 
-    if not raw_message:
-        return {"response": "Please type a message and I will help you."}
+    Frontend sends only the user message + (optional) short history.
+    The Gemini API key is read from GEMINI_API_KEY env var (via .env).
+    """
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    model = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash").strip() or "gemini-1.5-flash"
 
-    # Step 1: Smart local answers (instant, no API needed)
-    if any(word in message for word in ("hello", "hi", "hey")):
-        return {"response": "Hello! I'm your Spatial Intelligence Assistant. Ask me about civilizations, KD-Trees, the REST API, clustering, or anything about this project!"}
-    elif "date" in message or "today" in message:
-        return {"response": f"Today's date is {datetime.now().strftime('%d %B %Y')}."}
-    elif "time" in message:
-        return {"response": f"Current server time is {datetime.now().strftime('%I:%M %p')}."}
+    if not req.message or not req.message.strip():
+        return ChatResponse(reply="Please type a message.", ok=False, model=model, error="empty_message")
 
-    # Step 2: Gemini with smart system prompt + longer timeout
-    SYSTEM_PROMPT = """You are a Spatial Intelligence Assistant for the Civilization Mapper project.
-
-PROJECT DETAILS:
-- Full-stack app: C++ KD-Tree backend + FastAPI middleware + Leaflet map frontend
-- Dataset: 47+ civilizations (Indian + global) with lat/lon, resource/knowledge/military scores
-- Spatial Score = (Resource + Knowledge + Military) / 3
-- Features: nearest-neighbor search, range queries, DBSCAN clustering, map visualization
-- Frontend calls FastAPI REST API in real time on map click
-
-KEY CIVILIZATIONS:
-- Mughal Empire: (28.6N, 77.2E), South Asia, 1526-1857 CE, Score: 89.33
-- Maurya Empire: (25.0N, 83.0E), South Asia, 322-185 BCE
-- Gupta Empire: (24.5N, 82.5E), South Asia, 320-550 CE
-- Chola Dynasty: (10.8N, 79.7E), South India, Score: 85.33
-- Indus Valley: (27.0N, 68.0E), 3300-1300 BCE
-- Han China: (35.0N, 105.0E), East Asia, 206 BCE-220 CE
-- Persian Empire: (32.0N, 53.0E), Middle East, Score: 83.33
-- Roman Empire, Greek, Ottoman, Aztec, Inca, Mali, Songhai also included
-
-RULES:
-- Answer questions about this project, civilizations, history, coding, or anything general
-- Be concise but informative
-- For civilization data questions, use the details above
-- Never say you don't know basic facts
-- Keep responses under 4 sentences unless detail is needed"""
-
-    try:
-        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
-        response = await asyncio.wait_for(
-            asyncio.to_thread(
-                client.models.generate_content,
-                model="gemini-2.0-flash",
-                contents=raw_message,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_PROMPT,
-                    max_output_tokens=500,
-                )
+    if not api_key:
+        # Don't crash the frontend—return a friendly message instead.
+        return ChatResponse(
+            reply=(
+                "Chat is not configured yet. Set `GEMINI_API_KEY` in `backend/.env` and restart the backend.\n\n"
+                "Tip: You can still use the UI—project suggestions will work even without AI."
             ),
-            timeout=30,
+            ok=False,
+            model=model,
+            error="missing_api_key",
         )
 
-        if response and response.text:
-            return {"response": response.text}
+    # Add lightweight live context (kept short to reduce tokens)
+    try:
+        region_set = sorted({(c.region or "Unknown").strip() for c in all_civs})
+        ctx = (
+            f"Live dataset: {len(all_civs)} civilizations across {len(region_set)} region(s): "
+            + ", ".join(region_set[:12])
+            + ("..." if len(region_set) > 12 else "")
+            + f". KD-Tree nodes: {kd_tree.node_count}. R-Tree regions indexed: {len(r_tree.regions)}."
+        )
+    except Exception:
+        ctx = "Live dataset loaded. (Context unavailable.)"
 
-    except asyncio.TimeoutError:
-        return {"response": f"Request timed out. Try again - Gemini is sometimes slow. (Your question: '{raw_message[:50]}')"}
+    system = CHAT_SYSTEM + "\n\nLIVE CONTEXT:\n" + ctx
+
+    # Format history for Gemini
+    gemini_messages = []
+    for m in req.history:
+        role = "user" if m.role == "user" else "model"
+        gemini_messages.append({"role": role, "parts": [{"text": m.content}]})
+    gemini_messages.append({"role": "user", "parts": [{"text": req.message}]})
+
+    payload = {
+        "systemInstruction": {
+            "parts": [{"text": system}]
+        },
+        "contents": gemini_messages
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                json=payload,
+                headers={"Content-Type": "application/json"},
+            )
+        
+        if not resp.is_success:
+            if resp.status_code == 400 and "API key not valid" in resp.text:
+                raise HTTPException(status_code=401, detail="Invalid Gemini API key")
+            raise HTTPException(status_code=resp.status_code, detail=resp.text)
+
+        data = resp.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            reply = data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            reply = "I'm sorry, I couldn't generate a response."
+            
+        return ChatResponse(reply=reply, ok=True, model=model)
+
+    except httpx.TimeoutException:
+        return ChatResponse(reply="The AI service timed out. Please try again.", ok=False, model=model, error="timeout")
+    except HTTPException:
+        raise
     except Exception as e:
-        pass
-
-    # Step 3: Smart offline fallback (only if Gemini completely fails)
-    if "kd-tree" in message or "kdtree" in message:
-        return {"response": "KD-Tree is a spatial data structure for efficient nearest neighbor search with O(log n) average complexity. This project uses it to find the closest civilizations to any clicked point on the map."}
-    elif "cluster" in message:
-        return {"response": "Clustering uses DBSCAN, which groups nearby civilizations based on geographic density. Unlike K-Means, DBSCAN doesn't need a fixed number of clusters."}
-    elif "mughal" in message:
-        return {"response": "Mughal Empire: Located at (28.6 deg N, 77.2 deg E), South Asia. Period: 1526-1857 CE. Spatial Score: 89.33 (Resource: 90, Knowledge: 88, Military: 90)."}
-    elif "maurya" in message:
-        return {"response": "Maurya Empire: Located at (25.0 deg N, 83.0 deg E), South Asia. Period: 322-185 BCE. One of the largest empires in Indian history."}
-    elif "gupta" in message:
-        return {"response": "Gupta Empire: Located at (24.5 deg N, 82.5 deg E), South Asia. Period: 320-550 CE. Known as India's Golden Age - advances in science, math, and art."}
-    elif "chola" in message:
-        return {"response": "Chola Dynasty: Located at (10.8 deg N, 79.7 deg E), South India. Period: 300 BCE-1279 CE. Known for naval power and temple architecture."}
-    elif "score" in message or "spatial" in message:
-        return {"response": "Spatial Score = (Resource + Knowledge + Military) / 3. It ranks civilizations by their overall strength across three dimensions."}
-    elif "api" in message or "rest" in message or "endpoint" in message:
-        return {"response": "The backend exposes REST API endpoints via FastAPI: /api/nearest for KD-Tree neighbor search, /api/range for range queries, /api/cluster for DBSCAN clustering, and /api/civilizations for the full dataset."}
-    elif "project" in message:
-        return {"response": "This is a Civilization Spatial Mapper - a full-stack spatial intelligence system using C++ KD-Tree backend, FastAPI middleware, and an interactive Leaflet map frontend with 47+ civilizations."}
-    elif "indian" in message or "india" in message:
-        return {"response": "Indian civilizations in the dataset include: Indus Valley, Harappan, Vedic, Maurya, Gupta, Satavahana, Chola, Pallava, Pandya, Rashtrakuta, Vijayanagara, Delhi Sultanate, Mughal, Maratha, Sikh Empire, and more - spanning 3300 BCE to 1947 CE."}
-    else:
-        return {"response": "I'm your Spatial Intelligence Assistant. Ask me about civilizations in the dataset, KD-Tree algorithms, the REST API, clustering, or anything about this project!"}
+        # Surface a stable error response so the UI can show a friendly message.
+        return ChatResponse(
+            reply="I couldn’t reach the AI service right now. Please try again in a moment.",
+            ok=False,
+            model=model,
+            error=str(e)[:200],
+        )

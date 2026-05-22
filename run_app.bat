@@ -11,9 +11,9 @@ if %errorlevel% neq 0 (
 
 echo.
 echo =======================================================
-echo Starting REST API Server Backend (Port 8080)
+echo Starting Python REST API Server Backend (Port 8080)
 echo =======================================================
-start "Backend API Server" cmd /c "mapper.exe"
+start "Python API Server" cmd /k "python server.py"
 
 echo.
 echo Waiting 2 seconds for server to initialize...
