@@ -34,7 +34,7 @@ from models import Civilization, ClusterResult
 from kdtree import KDTree
 from rtree_index import RTreeIndex
 from clustering import dbscan
-from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations
+from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations, update_user_password, get_civilizations_by_user
 import hashlib
 
 load_dotenv()
@@ -149,6 +149,31 @@ def login(req: LoginRequest):
     if not user or user["password_hash"] != hashlib.sha256(req.password.encode()).hexdigest():
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"message": "Login successful", "token": user["id"], "name": user["name"]}
+
+class ChangePasswordRequest(BaseModel):
+    token: int
+    old_password: str
+    new_password: str
+
+@app.post("/api/change-password")
+def change_password(req: ChangePasswordRequest):
+    user = get_user_by_id(req.token)
+    if not user or user["password_hash"] != hashlib.sha256(req.old_password.encode()).hexdigest():
+        raise HTTPException(status_code=401, detail="Invalid current password")
+    
+    success = update_user_password(user["id"], req.new_password)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+    return {"message": "Password updated successfully"}
+
+@app.get("/api/user-civilizations")
+def get_user_civilizations(token: int = Query(...)):
+    user = get_user_by_id(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_civs = get_civilizations_by_user(token)
+    return user_civs
 
 class CivilizationRequest(BaseModel):
     name: str

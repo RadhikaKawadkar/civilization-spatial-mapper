@@ -365,7 +365,11 @@ select option{background:#0b1422;}
     </div>
     <div class="field-group" id="landNameGroup" style="display:none; margin-bottom:15px;"><label>Name</label><input type="text" id="landName" style="padding:0.7rem; font-size:1rem;"></div>
     <div class="field-group" style="margin-bottom:15px;"><label>Email</label><input type="email" id="landEmail" style="padding:0.7rem; font-size:1rem;"></div>
-    <div class="field-group" style="margin-bottom:25px;"><label>Password</label><input type="password" id="landPassword" style="padding:0.7rem; font-size:1rem;" onkeydown="if(event.key==='Enter')submitLandingAuth();"></div>
+    <div class="field-group" style="margin-bottom:25px; position:relative;">
+      <label>Password</label>
+      <input type="password" id="landPassword" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitLandingAuth();">
+      <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('landPassword', this)">👁️</span>
+    </div>
     <button class="btn btn-primary" style="width:100%; padding:0.8rem; font-size:1.05rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); transition:all 0.2s;" id="landSubmitBtn" onclick="submitLandingAuth()">Enter Platform</button>
     <div id="landError" style="color:#f87171; text-align:center; margin-top:1rem; font-size:0.85rem; min-height:1rem;"></div>
   </div>
@@ -376,7 +380,8 @@ select option{background:#0b1422;}
 <header>
   <div id="userInfoContainer" style="position:absolute; top: 20px; right: 20px; z-index:100; font-size:0.85rem; display:flex; align-items:center;">
     Logged in as&nbsp;<strong id="userNameDisplay" style="color:var(--gold);"></strong>
-    <button class="btn btn-secondary" style="margin-left:12px; padding:0.2rem 0.6rem; font-size:0.7rem;" onclick="logout()">Logout</button>
+    <button class="btn btn-secondary" style="margin-left:12px; padding:0.2rem 0.6rem; font-size:0.7rem;" onclick="openProfileModal()">Profile</button>
+    <button class="btn btn-secondary" style="margin-left:8px; padding:0.2rem 0.6rem; font-size:0.7rem;" onclick="logout()">Logout</button>
   </div>
   <div class="hero-title">
     <h1>Civilization Spatial Intelligence Mapper</h1>
@@ -492,6 +497,13 @@ select option{background:#0b1422;}
 <!-- ── TABLE ── -->
 <div class="card full-width">
   <div class="card-title"><span>📊</span> Civilization–Region Matrix <span style="font-size:.72rem;color:var(--text-muted);font-family:Rajdhani,sans-serif;margin-left:.5rem;font-weight:400">(click row → locate on map · 🇮🇳 = Indian)</span></div>
+  <div style="margin: 10px 0 15px 0; display: flex; gap: 8px;">
+    <div style="position: relative; flex: 1;">
+      <input type="text" id="civSearchInput" placeholder="Search dynasty or place..." style="width: 100%; padding: 0.6rem; padding-right: 30px; border-radius: 6px; border: 1px solid rgba(201,168,76,.3); background: rgba(0,0,0,.2); color: var(--text-primary); font-family: 'Rajdhani', sans-serif; box-sizing: border-box;" onkeydown="if(event.key==='Enter')searchTable()" oninput="toggleClearSearchBtn()">
+      <span id="clearSearchBtn" onclick="clearTableSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); display: none; font-weight: bold; font-family: sans-serif; font-size: 1.2rem;">&times;</span>
+    </div>
+    <button class="btn btn-secondary" onclick="searchTable()">Search</button>
+  </div>
   <div class="table-scroll" aria-label="Civilization region matrix (scrollable)">
     <div id="civTableEmpty" class="table-empty" style="display:none"></div>
     <table class="data-table" id="civTable">
@@ -584,6 +596,42 @@ select option{background:#0b1422;}
   </div>
 </div>
 
+<!-- ── PROFILE MODAL ── -->
+<div id="profileModal" style="position:fixed; inset:0; z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; background: rgba(0,0,0,0.8); backdrop-filter:blur(5px); font-family:'Inter', sans-serif;">
+  <div class="card" style="width:500px; max-width:90%; background:#0a1628; border:1px solid rgba(201,168,76,0.3); box-shadow: 0 25px 50px rgba(0,0,0,0.8); border-radius:12px; overflow:hidden; position:relative;">
+    <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;" onclick="closeProfileModal()">&times;</button>
+    
+    <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button id="tabPosts" style="flex:1; background:none; border:none; color:var(--gold); padding:1rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid var(--gold); transition:all 0.2s;" onclick="setProfileTab('posts')">My Posts</button>
+      <button id="tabPassword" style="flex:1; background:none; border:none; color:var(--text-muted); padding:1rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid transparent; transition:all 0.2s;" onclick="setProfileTab('password')">Change Password</button>
+    </div>
+    
+    <div style="padding: 1.5rem;">
+      <div id="profilePostsSection">
+        <div id="userPostsList" style="max-height: 300px; overflow-y: auto; color: var(--text-primary); font-size: 0.9rem;">
+          <div style="text-align:center; padding:1rem; color:var(--text-muted);"><span class="spinner"></span> Loading posts...</div>
+        </div>
+      </div>
+      
+      <div id="profilePasswordSection" style="display:none;">
+        <div class="field-group" style="margin-bottom:15px; position:relative;">
+          <label>Current Password</label>
+          <input type="password" id="profOldPass" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;">
+          <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('profOldPass', this)">👁️</span>
+        </div>
+        <div class="field-group" style="margin-bottom:25px; position:relative;">
+          <label>New Password</label>
+          <input type="password" id="profNewPass" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;">
+          <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('profNewPass', this)">👁️</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%; padding:0.8rem; font-size:1.05rem;" onclick="submitChangePassword()">Change Password</button>
+        <div id="profPassError" style="color:#f87171; text-align:center; margin-top:1rem; font-size:0.85rem; min-height:1rem;"></div>
+        <div id="profPassSuccess" style="color:#4ade80; text-align:center; margin-top:0.5rem; font-size:0.85rem; min-height:1rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div> <!-- end appWrapper -->
 
 <script>
@@ -662,6 +710,96 @@ function showTooltip(html, x, y) {
 function hideTooltip() {
   if (!uiTooltipEl) return;
   uiTooltipEl.classList.remove('show');
+}
+
+function togglePasswordVisibility(inputId, iconEl) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    iconEl.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    iconEl.textContent = '👁️';
+  }
+}
+
+function openProfileModal() {
+  document.getElementById('profileModal').style.display = 'flex';
+  setProfileTab('posts');
+}
+
+function closeProfileModal() {
+  document.getElementById('profileModal').style.display = 'none';
+  document.getElementById('profOldPass').value = '';
+  document.getElementById('profNewPass').value = '';
+  document.getElementById('profPassError').innerText = '';
+  document.getElementById('profPassSuccess').innerText = '';
+}
+
+function setProfileTab(tab) {
+  document.getElementById('tabPosts').style.color = tab === 'posts' ? 'var(--gold)' : 'var(--text-muted)';
+  document.getElementById('tabPosts').style.borderBottomColor = tab === 'posts' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tabPassword').style.color = tab === 'password' ? 'var(--gold)' : 'var(--text-muted)';
+  document.getElementById('tabPassword').style.borderBottomColor = tab === 'password' ? 'var(--gold)' : 'transparent';
+  
+  document.getElementById('profilePostsSection').style.display = tab === 'posts' ? 'block' : 'none';
+  document.getElementById('profilePasswordSection').style.display = tab === 'password' ? 'block' : 'none';
+  
+  if (tab === 'posts') fetchUserPosts();
+}
+
+async function fetchUserPosts() {
+  const list = document.getElementById('userPostsList');
+  list.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted);"><span class="spinner"></span> Loading posts...</div>';
+  try {
+    const data = await apiFetch(`/api/user-civilizations?token=${authToken}`);
+    if (data.length === 0) {
+      list.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">You have not uploaded any dynasties yet.</div>';
+      return;
+    }
+    let html = '<ul style="list-style:none; padding:0; margin:0;">';
+    data.forEach(c => {
+      html += `<li style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+        <span><strong style="color:var(--gold)">${c.name}</strong> (${c.region})</span>
+        <span style="color:var(--text-muted)">Score: ${score(c)}</span>
+      </li>`;
+    });
+    html += '</ul>';
+    list.innerHTML = html;
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center; padding:1rem; color:#f87171;">Failed to load posts.</div>';
+  }
+}
+
+async function submitChangePassword() {
+  const oldPass = document.getElementById('profOldPass').value;
+  const newPass = document.getElementById('profNewPass').value;
+  const errorDiv = document.getElementById('profPassError');
+  const successDiv = document.getElementById('profPassSuccess');
+  
+  errorDiv.innerText = '';
+  successDiv.innerText = '';
+  
+  if (!oldPass || !newPass) {
+    errorDiv.innerText = "Please fill out both fields.";
+    return;
+  }
+  
+  try {
+    const res = await fetch(API + '/api/change-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ token: authToken, old_password: oldPass, new_password: newPass })
+    });
+    const data = await res.json();
+    if (!res.ok) { errorDiv.innerText = data.detail || "Error changing password"; return; }
+    
+    successDiv.innerText = "Password changed successfully!";
+    document.getElementById('profOldPass').value = '';
+    document.getElementById('profNewPass').value = '';
+  } catch(e) {
+    errorDiv.innerText = "Network error: Cannot reach the backend.";
+  }
 }
 
 let authToken = null;
@@ -1071,7 +1209,10 @@ function pulseMarker(c, pan=true) {
   const key = c.name || c;
   const m = markerRefs[key];
   if(!m) return;
-  if(pan) lmap.setView([c.latitude||c.lat, c.longitude||c.lon], Math.max(lmap.getZoom(),5), {animate:true});
+  if(pan) {
+    lmap.setView([c.latitude||c.lat, c.longitude||c.lon], Math.max(lmap.getZoom(),5), {animate:true});
+    document.getElementById('leafletMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
   setTimeout(() => m.openPopup(), pan?400:200);
 }
 
@@ -1097,6 +1238,22 @@ function cleanupTempLayers() {
 // ════════════════════════════════════════════════
 //  TABLE / HEAT / COMPLEXITY
 // ════════════════════════════════════════════════
+let tableSearchQuery = "";
+function searchTable() {
+  tableSearchQuery = document.getElementById('civSearchInput').value.toLowerCase().trim();
+  renderTable();
+}
+function clearTableSearch() {
+  document.getElementById('civSearchInput').value = '';
+  toggleClearSearchBtn();
+  searchTable();
+}
+function toggleClearSearchBtn() {
+  const input = document.getElementById('civSearchInput');
+  const btn = document.getElementById('clearSearchBtn');
+  btn.style.display = input.value.length > 0 ? 'block' : 'none';
+}
+
 function renderTable() {
   const body = document.getElementById('civTableBody'); body.innerHTML = '';
   const empty = document.getElementById('civTableEmpty');
@@ -1130,7 +1287,24 @@ function renderTable() {
 
   empty.style.display = 'none';
   if (table) table.style.display = '';
-  [...civilizations].sort((a,b)=>score(b)-score(a)).forEach(c => {
+  
+  let filteredCivs = civilizations;
+  if (tableSearchQuery) {
+    filteredCivs = civilizations.filter(c => 
+      c.name.toLowerCase().includes(tableSearchQuery) || 
+      (c.region && c.region.toLowerCase().includes(tableSearchQuery))
+    );
+  }
+  
+  if (filteredCivs.length === 0) {
+    empty.style.display = 'block';
+    empty.textContent = 'No matching civilizations found.';
+    if (table) table.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  [...filteredCivs].sort((a,b)=>score(b)-score(a)).forEach(c => {
     const s=score(c), ind=isIndian(c);
     const cls=s>=85?'score-high':s>=77?'score-mid':'score-low';
     const tr=document.createElement('tr');
@@ -1142,7 +1316,7 @@ function renderTable() {
     tr.addEventListener('click', () => pulseMarker(c));
     body.appendChild(tr);
   });
-  hint.style.display = civilizations.length > 10 ? 'block' : 'none';
+  hint.style.display = filteredCivs.length > 10 ? 'block' : 'none';
 }
 
 let heatMetric = 'score';

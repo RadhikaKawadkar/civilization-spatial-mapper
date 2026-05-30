@@ -91,3 +91,24 @@ def get_custom_civilizations():
         item["added_by_name"] = item.get("users", {}).get("name") if item.get("users") else None
         rows.append(item)
     return rows
+
+def update_user_password(user_id: int, new_password: str):
+    if not supabase:
+        return False
+    try:
+        new_hash = hash_password(new_password)
+        response = supabase.table("users").update({"password_hash": new_hash}).eq("id", user_id).execute()
+        return len(response.data) > 0
+    except Exception as e:
+        print(f"Error updating password: {e}")
+        return False
+
+def get_civilizations_by_user(user_id: int):
+    if not supabase:
+        return []
+    response = supabase.table("custom_civilizations").select("*, users(name)").eq("added_by_id", user_id).execute()
+    rows = []
+    for item in response.data:
+        item["added_by_name"] = item.get("users", {}).get("name") if item.get("users") else None
+        rows.append(item)
+    return rows
