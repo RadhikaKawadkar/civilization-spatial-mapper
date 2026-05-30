@@ -2,22 +2,20 @@
 echo =======================================================
 echo Building Civilization Spatial Intelligence System
 echo =======================================================
-g++ -std=c++17 -Wall -O2 -o mapper.exe civilization_mapper.cpp
-if %errorlevel% neq 0 (
-    echo [!] Compilation failed. Please check your g++ installation or errors above.
-    pause
-    exit /b %errorlevel%
+g++ -std=c++17 -Wall -O2 -o mapper.exe civilization_mapper.cpp -lws2_32 -mthreads
+if %errorlevel% equ 0 (
+    echo [!] Compilation successful. Starting C++ Server Backend (Port 8080)
+    start "C++ API Server" cmd /k "mapper.exe"
+) else (
+    echo [!] Compilation failed. Falling back to FastAPI Python Backend (Port 8080)
+    echo Installing backend dependencies...
+    pip install -r backend\requirements.txt
+    start "FastAPI Server" cmd /k "cd backend && uvicorn main:app --reload --port 8080"
 )
 
 echo.
-echo =======================================================
-echo Starting Python REST API Server Backend (Port 8080)
-echo =======================================================
-start "Python API Server" cmd /k "python server.py"
-
-echo.
-echo Waiting 2 seconds for server to initialize...
-timeout /t 2 /nobreak > nul
+echo Waiting 5 seconds for server to initialize...
+timeout /t 5 /nobreak > nul
 
 echo.
 echo =======================================================
@@ -26,7 +24,7 @@ echo =======================================================
 start civilization_mapper_frontend.html
 
 echo.
-echo [!] Both Frontend and Backend are now running parallelly in sync!
-echo [!] Close the "Backend API Server" cmd window when you want to stop the server.
+echo [!] Frontend and Backend are now running!
+echo [!] Close the API Server cmd window when you want to stop the server.
 echo.
 pause

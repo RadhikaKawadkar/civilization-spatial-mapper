@@ -33,7 +33,6 @@ from pydantic import BaseModel
 from models import Civilization, ClusterResult
 from kdtree import KDTree
 from rtree_index import RTreeIndex
-from loader import load_civilizations
 from clustering import dbscan
 from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations
 import hashlib
@@ -55,22 +54,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Bootstrap data & indexes ───────────────────────────────────
-DATA_CSV = Path(__file__).parent.parent / "data" / "final_dataset.csv"
-CIVS_CSV = Path(__file__).parent.parent / "civilizations.csv"
 CPP_EXE  = Path(__file__).parent.parent / "mapper.exe"
 
 init_db()
 
-all_civs: list[Civilization] = load_civilizations(str(CIVS_CSV) if CIVS_CSV.exists() else str(DATA_CSV))
+all_civs: list[Civilization] = []
 
 custom_rows = get_custom_civilizations()
 for row in custom_rows:
     c = Civilization(
         name=row["name"], lat=row["lat"], lon=row["lon"],
-        start=row["start_year"], end=row["end_year"], region=row["region"],
-        resource=row["resource_density"], knowledge=row["knowledge_density"],
-        military=row["military_strength"], added_by_name=row["added_by_name"]
+        start=row.get("start_year") or 0, end=row.get("end_year") or 0, region=row.get("region") or "Unknown",
+        resource=row.get("resource_density") or 50.0, knowledge=row.get("knowledge_density") or 50.0,
+        military=row.get("military_strength") or 50.0, added_by_name=row.get("added_by_name")
     )
     all_civs.append(c)
 

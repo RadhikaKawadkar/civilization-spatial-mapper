@@ -1,104 +1,93 @@
-import sqlite3
 import os
-from pathlib import Path
 import hashlib
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
-DB_PATH = Path(__file__).parent / "database.db"
+load_dotenv()
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# Initialize Supabase client
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+# We only create the client if the URL and KEY are present.
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    supabase = None
+    print("WARNING: SUPABASE_URL or SUPABASE_KEY not found. Database operations will fail.")
 
 def init_db():
-    conn = get_db()
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS custom_civilizations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            lat REAL NOT NULL,
-            lon REAL NOT NULL,
-            start_year INTEGER,
-            end_year INTEGER,
-            region TEXT,
-            resource_density REAL,
-            knowledge_density REAL,
-            military_strength REAL,
-            added_by_id INTEGER,
-            FOREIGN KEY (added_by_id) REFERENCES users(id)
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    # No local initialization needed for Supabase. Tables must be created via SQL Editor.
+    pass
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def create_user(name: str, email: str, password: str):
-    conn = get_db()
-    c = conn.cursor()
-    try:
-        c.execute(
-            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-            (name, email, hash_password(password))
-        )
-        conn.commit()
-        return c.lastrowid
-    except sqlite3.IntegrityError:
+    if not supabase:
         return None
-    finally:
-        conn.close()
+    try:
+        data = {
+            "name": name,
+            "email": email,
+            "password_hash": hash_password(password)
+        }
+        response = supabase.table("users").insert(data).execute()
+        if len(response.data) > 0:
+            return response.data[0]["id"]
+        return None
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        return None
 
 def get_user_by_email(email: str):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE email = ?", (email,))
-    user = c.fetchone()
-    conn.close()
-    return user
+    if not supabase:
+        return None
+    response = supabase.table("users").select("*").eq("email", email).execute()
+    if len(response.data) > 0:
+        return response.data[0]
+    return None
 
 def get_user_by_id(user_id: int):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-    user = c.fetchone()
-    conn.close()
-    return user
+    if not supabase:
+        return None
+    response = supabase.table("users").select("*").eq("id", user_id).execute()
+    if len(response.data) > 0:
+        return response.data[0]
+    return None
 
 def add_custom_civilization(name, lat, lon, region, resource, knowledge, military, added_by_id):
-    conn = get_db()
-    c = conn.cursor()
-    try:
-        c.execute(
-            """INSERT INTO custom_civilizations 
-            (name, lat, lon, start_year, end_year, region, resource_density, knowledge_density, military_strength, added_by_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (name, lat, lon, 0, 0, region, resource, knowledge, military, added_by_id)
-        )
-        conn.commit()
-        return c.lastrowid
-    except sqlite3.IntegrityError:
+    if not supabase:
         return None
-    finally:
-        conn.close()
+    try:
+        data = {
+            "name": name,
+            "lat": lat,
+            "lon": lon,
+            "start_year": 0,
+            "end_year": 0,
+            "region": region,
+            "resource_density": resource,
+            "knowledge_density": knowledge,
+            "military_strength": military,
+            "added_by_id": added_by_id
+        }
+        response = supabase.table("custom_civilizations").insert(data).execute()
+        if len(response.data) > 0:
+            return response.data[0]["id"]
+        return None
+    except Exception as e:
+        print(f"Error adding custom civilization: {e}")
+        return None
 
 def get_custom_civilizations():
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("""
-        SELECT c.*, u.name as added_by_name 
-        FROM custom_civilizations c
-        LEFT JOIN users u ON c.added_by_id = u.id
-    """)
-    rows = c.fetchall()
-    conn.close()
+    if not supabase:
+        return []
+    # Use users(name) for a LEFT JOIN (base data will have added_by_id=null)
+    response = supabase.table("custom_civilizations").select("*, users(name)").execute()
+    rows = []
+    for item in response.data:
+        # Reformat the result to match the expected format
+        item["added_by_name"] = item.get("users", {}).get("name") if item.get("users") else None
+        rows.append(item)
     return rows
