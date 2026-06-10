@@ -24,11 +24,17 @@ import os
 import math
 import subprocess
 import httpx
+import random
+import time
+import smtplib
+import asyncio
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, HTMLResponse
 from pydantic import BaseModel
 from models import Civilization, ClusterResult
 from kdtree import KDTree
@@ -36,8 +42,181 @@ from rtree_index import RTreeIndex
 from clustering import dbscan
 from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations, update_user_password, get_civilizations_by_user
 import hashlib
+import secrets
 
 load_dotenv()
+
+# ── Gmail SMTP Configuration ─────────────────────────────────────
+GMAIL_SENDER       = os.environ.get("GMAIL_SENDER", "").strip()
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+GMAIL_DISPLAY_NAME = os.environ.get("GMAIL_DISPLAY_NAME", "Civilization Spatial Mapper").strip()
+
+# ── In-Memory OTP Store { email: {otp, expires_at} } ────────────
+otp_store: dict = {}
+OTP_EXPIRY_SECONDS = 600  # 10 minutes
+
+
+def _send_gmail_sync(to_email: str, subject: str, html_body: str) -> bool:
+    """
+    Send an HTML email via Gmail SMTP (TLS on port 587).
+    Uses the GMAIL_SENDER and GMAIL_APP_PASSWORD from .env.
+    This is a synchronous function; call it via asyncio.to_thread.
+    """
+    if not GMAIL_APP_PASSWORD or GMAIL_APP_PASSWORD == "YOUR_16_CHAR_APP_PASSWORD_HERE":
+        print("[EMAIL] Gmail App Password not configured in backend/.env — skipping email")
+        print(f"[EMAIL] Would have sent '{subject}' to {to_email}")
+        return False
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = f"{GMAIL_DISPLAY_NAME} <{GMAIL_SENDER}>"
+        msg["To"]      = to_email
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(GMAIL_SENDER, GMAIL_APP_PASSWORD)
+            server.sendmail(GMAIL_SENDER, to_email, msg.as_string())
+
+        print(f"[EMAIL] ✓ Sent to {to_email}: {subject}")
+        return True
+    except smtplib.SMTPAuthenticationError:
+        print("[EMAIL] ✗ Gmail auth failed — check GMAIL_APP_PASSWORD in backend/.env")
+        return False
+    except Exception as e:
+        print(f"[EMAIL] ✗ Error sending email: {e}")
+        return False
+
+
+async def send_gmail(to_email: str, subject: str, html_body: str) -> bool:
+    """Async wrapper — runs the blocking SMTP call in a thread."""
+    return await asyncio.to_thread(_send_gmail_sync, to_email, subject, html_body)
+
+
+def build_otp_email(name: str, otp: str) -> str:
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+    <body style="margin:0;padding:0;background:#050d1a;font-family:'Segoe UI',sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#050d1a;min-height:100vh;">
+        <tr><td align="center" style="padding:40px 20px;">
+          <table width="520" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#0a1628,#0d1f3c);border:1px solid rgba(201,168,76,0.3);border-radius:16px;overflow:hidden;">
+            <!-- Header -->
+            <tr>
+              <td style="background:linear-gradient(135deg,#0d1f3c,#162040);padding:32px 40px;text-align:center;border-bottom:1px solid rgba(201,168,76,0.2);">
+                <div style="font-size:2rem;margin-bottom:8px;">🏛️</div>
+                <h1 style="margin:0;font-family:'Georgia',serif;font-size:1.4rem;color:#c9a84c;letter-spacing:0.08em;">CIVILIZATION SPATIAL MAPPER</h1>
+                <p style="margin:6px 0 0;color:#7a8ba0;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;">Password Reset</p>
+              </td>
+            </tr>
+            <!-- Body -->
+            <tr>
+              <td style="padding:36px 40px;">
+                <p style="color:#c8d6e5;font-size:1rem;margin:0 0 12px;">Hello <strong style="color:#c9a84c;">{name}</strong>,</p>
+                <p style="color:#7a8ba0;font-size:0.9rem;margin:0 0 28px;line-height:1.6;">We received a request to reset your password. Use the one-time passcode below. It expires in <strong style="color:#c9a84c;">10 minutes</strong>.</p>
+                <!-- OTP Box -->
+                <div style="background:rgba(201,168,76,0.08);border:2px solid #c9a84c;border-radius:12px;padding:28px;text-align:center;margin:0 0 28px;">
+                  <p style="margin:0 0 8px;color:#7a8ba0;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;">Your OTP Code</p>
+                  <div style="font-size:2.8rem;font-weight:700;letter-spacing:0.35em;color:#c9a84c;font-family:'Courier New',monospace;">{otp}</div>
+                </div>
+                <p style="color:#7a8ba0;font-size:0.82rem;margin:0;line-height:1.6;">If you did not request this, you can safely ignore this email. Your password will remain unchanged.</p>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td style="background:rgba(0,0,0,0.3);padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);">
+                <p style="margin:0;color:#3a4a5a;font-size:0.75rem;">Civilization Spatial Intelligence Mapper &bull; civilizationspatialmapper@gmail.com</p>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+    """
+
+
+def build_civilization_added_email(user_name: str, civ_name: str, region: str, resource: float, knowledge: float, military: float) -> str:
+    score = round((resource + knowledge + military) / 3, 2)
+    score_color = "#c9a84c" if score >= 85 else "#4ade80" if score >= 77 else "#f4a261"
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+    <body style="margin:0;padding:0;background:#050d1a;font-family:'Segoe UI',sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#050d1a;min-height:100vh;">
+        <tr><td align="center" style="padding:40px 20px;">
+          <table width="520" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#0a1628,#0d1f3c);border:1px solid rgba(201,168,76,0.3);border-radius:16px;overflow:hidden;">
+            <!-- Header -->
+            <tr>
+              <td style="background:linear-gradient(135deg,#0d1f3c,#162040);padding:32px 40px;text-align:center;border-bottom:1px solid rgba(201,168,76,0.2);">
+                <div style="font-size:2rem;margin-bottom:8px;">🏛️</div>
+                <h1 style="margin:0;font-family:'Georgia',serif;font-size:1.4rem;color:#c9a84c;letter-spacing:0.08em;">CIVILIZATION SPATIAL MAPPER</h1>
+                <p style="margin:6px 0 0;color:#7a8ba0;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;">New Civilization Added</p>
+              </td>
+            </tr>
+            <!-- Body -->
+            <tr>
+              <td style="padding:36px 40px;">
+                <p style="color:#c8d6e5;font-size:1rem;margin:0 0 12px;">Hello <strong style="color:#c9a84c;">{user_name}</strong>,</p>
+                <p style="color:#7a8ba0;font-size:0.9rem;margin:0 0 24px;line-height:1.6;">You have successfully added a new civilization to the Spatial Intelligence Mapper!</p>
+                <!-- Civilization Card -->
+                <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:24px;margin:0 0 24px;">
+                  <h2 style="margin:0 0 4px;font-family:'Georgia',serif;font-size:1.3rem;color:#c9a84c;">{civ_name}</h2>
+                  <p style="margin:0 0 20px;color:#7a8ba0;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">{region}</p>
+                  <!-- Metrics -->
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:6px 0;">
+                        <p style="margin:0 0 4px;color:#7a8ba0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Resource Density</p>
+                        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:8px;overflow:hidden;">
+                          <div style="background:#c9a84c;height:8px;width:{resource}%;border-radius:4px;"></div>
+                        </div>
+                        <p style="margin:2px 0 0;color:#c9a84c;font-size:0.8rem;font-weight:700;">{resource}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;">
+                        <p style="margin:0 0 4px;color:#7a8ba0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Knowledge Density</p>
+                        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:8px;overflow:hidden;">
+                          <div style="background:#00b4d8;height:8px;width:{knowledge}%;border-radius:4px;"></div>
+                        </div>
+                        <p style="margin:2px 0 0;color:#00b4d8;font-size:0.8rem;font-weight:700;">{knowledge}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;">
+                        <p style="margin:0 0 4px;color:#7a8ba0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Military Strength</p>
+                        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:8px;overflow:hidden;">
+                          <div style="background:#f87171;height:8px;width:{military}%;border-radius:4px;"></div>
+                        </div>
+                        <p style="margin:2px 0 0;color:#f87171;font-size:0.8rem;font-weight:700;">{military}</p>
+                      </td>
+                    </tr>
+                  </table>
+                  <!-- Score -->
+                  <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+                    <p style="margin:0;color:#7a8ba0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Spatial Score</p>
+                    <p style="margin:4px 0 0;font-size:2rem;font-weight:700;color:{score_color};">{score}</p>
+                  </div>
+                </div>
+                <p style="color:#7a8ba0;font-size:0.82rem;margin:0;line-height:1.6;">This civilization is now live on the spatial map and indexed in the KD-Tree.</p>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td style="background:rgba(0,0,0,0.3);padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);">
+                <p style="margin:0;color:#3a4a5a;font-size:0.75rem;">Civilization Spatial Intelligence Mapper &bull; civilizationspatialmapper@gmail.com</p>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+    """
 
 
 # ── App setup ──────────────────────────────────────────────────
@@ -54,7 +233,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CPP_EXE  = Path(__file__).parent.parent / "mapper.exe"
+CPP_EXE      = Path(__file__).parent.parent / "mapper.exe"
+FRONTEND_HTML = Path(__file__).parent.parent / "civilization_mapper_frontend.html"
 
 init_db()
 
@@ -83,7 +263,21 @@ print(f"[OK] R-Tree built:  {len(r_tree.regions)} regions")
 
 # ── Routes ─────────────────────────────────────────────────────
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend():
+    """
+    Serve the frontend HTML so users open http://localhost:8080
+    instead of a file:// URL (which browsers block for security).
+    """
+    if FRONTEND_HTML.exists():
+        return HTMLResponse(content=FRONTEND_HTML.read_text(encoding="utf-8"))
+    return HTMLResponse(
+        content="<h2>Frontend not found. Make sure civilization_mapper_frontend.html is in the project root.</h2>",
+        status_code=404,
+    )
+
+
+@app.get("/health")
 def health():
     return {
         "status": "running",
@@ -150,6 +344,88 @@ def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"message": "Login successful", "token": user["id"], "name": user["name"]}
 
+# ── Forgot Password — OTP Flow ──────────────────────────────────
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+@app.post("/api/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    """Step 1: Generate OTP and email it to the user."""
+    user = get_user_by_email(req.email)
+    if not user:
+        # Return success anyway to avoid email enumeration
+        return {"message": "If that email is registered, an OTP has been sent."}
+    
+    otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
+    otp_store[req.email] = {
+        "otp": otp,
+        "expires_at": time.time() + OTP_EXPIRY_SECONDS,
+        "verified": False,
+    }
+    
+    html = build_otp_email(user["name"], otp)
+    await send_gmail(
+        to_email=req.email,
+        subject="Your Password Reset OTP — Civilization Spatial Mapper",
+        html_body=html,
+    )
+    print(f"[OTP] Generated for {req.email}: {otp}")  # dev log
+    return {"message": "If that email is registered, an OTP has been sent."}
+
+
+class VerifyOTPRequest(BaseModel):
+    email: str
+    otp: str
+
+@app.post("/api/verify-otp")
+def verify_otp(req: VerifyOTPRequest):
+    """Step 2: Validate the OTP. Returns verified=True if valid."""
+    entry = otp_store.get(req.email)
+    if not entry:
+        raise HTTPException(status_code=400, detail="No OTP request found for this email. Please request a new one.")
+    if time.time() > entry["expires_at"]:
+        otp_store.pop(req.email, None)
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+    if entry["otp"] != req.otp.strip():
+        raise HTTPException(status_code=400, detail="Invalid OTP. Please check and try again.")
+    
+    # Mark as verified (allows password reset)
+    otp_store[req.email]["verified"] = True
+    return {"message": "OTP verified successfully.", "verified": True}
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str
+    otp: str
+
+@app.post("/api/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    """Step 3: Reset password — requires a verified OTP."""
+    entry = otp_store.get(req.email)
+    if not entry:
+        raise HTTPException(status_code=400, detail="No verified OTP found. Please start the reset process again.")
+    if time.time() > entry["expires_at"]:
+        otp_store.pop(req.email, None)
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+    if not entry.get("verified"):
+        raise HTTPException(status_code=400, detail="OTP not verified. Please verify your OTP first.")
+    if entry["otp"] != req.otp.strip():
+        raise HTTPException(status_code=400, detail="OTP mismatch. Please start the reset process again.")
+    
+    user = get_user_by_email(req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="Email address not found")
+    
+    success = update_user_password(user["id"], req.new_password)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to reset password")
+    
+    # Clean up OTP
+    otp_store.pop(req.email, None)
+    return {"message": "Password reset successfully"}
+
 class ChangePasswordRequest(BaseModel):
     token: int
     old_password: str
@@ -186,7 +462,7 @@ class CivilizationRequest(BaseModel):
     token: int
 
 @app.post("/api/civilizations")
-def post_civilization(req: CivilizationRequest):
+async def post_civilization(req: CivilizationRequest):
     user = get_user_by_id(req.token)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -205,6 +481,24 @@ def post_civilization(req: CivilizationRequest):
     )
     all_civs.append(c)
     kd_tree.build(all_civs)
+
+    # Send confirmation email to user
+    user_email = user.get("email", "")
+    if user_email:
+        html = build_civilization_added_email(
+            user_name=user["name"],
+            civ_name=req.name,
+            region=req.region,
+            resource=req.resource,
+            knowledge=req.knowledge,
+            military=req.military,
+        )
+        await send_gmail(
+            to_email=user_email,
+            subject=f"Civilization Added — {req.name} 🏛️",
+            html_body=html,
+        )
+
     return {"message": "Civilization added", "civilization": c.to_dict()}
 
 @app.get("/api/civilizations")

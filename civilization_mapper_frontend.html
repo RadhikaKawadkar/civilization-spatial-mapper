@@ -359,18 +359,88 @@ select option{background:#0b1422;}
     <p style="color:var(--text-muted); letter-spacing:1px; margin-top: 10px;">Spatial Intelligence & KD-Tree Engine</p>
   </div>
   <div class="card" style="width:360px; background:rgba(255,255,255,0.03); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-    <div style="display:flex; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div id="authTabsHeader" style="display:flex; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1);">
       <button id="tabLogin" style="flex:1; background:none; border:none; color:var(--gold); padding:0.8rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid var(--gold); transition:all 0.2s;" onclick="setAuthTab('login')">Login</button>
       <button id="tabRegister" style="flex:1; background:none; border:none; color:var(--text-muted); padding:0.8rem; cursor:pointer; font-weight:600; font-family:'Rajdhani', sans-serif; font-size:1.1rem; border-bottom:2px solid transparent; transition:all 0.2s;" onclick="setAuthTab('register')">Sign Up</button>
     </div>
-    <div class="field-group" id="landNameGroup" style="display:none; margin-bottom:15px;"><label>Name</label><input type="text" id="landName" style="padding:0.7rem; font-size:1rem;"></div>
-    <div class="field-group" style="margin-bottom:15px;"><label>Email</label><input type="email" id="landEmail" style="padding:0.7rem; font-size:1rem;"></div>
-    <div class="field-group" style="margin-bottom:25px; position:relative;">
-      <label>Password</label>
-      <input type="password" id="landPassword" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitLandingAuth();">
-      <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('landPassword', this)">👁️</span>
+    
+    <div id="authFieldsSection">
+      <div class="field-group" id="landNameGroup" style="display:none; margin-bottom:15px;"><label>Name</label><input type="text" id="landName" style="padding:0.7rem; font-size:1rem;"></div>
+      <div class="field-group" style="margin-bottom:15px;"><label>Email</label><input type="email" id="landEmail" style="padding:0.7rem; font-size:1rem;"></div>
+      <div class="field-group" style="margin-bottom:15px; position:relative;">
+        <label>Password</label>
+        <input type="password" id="landPassword" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitLandingAuth();">
+        <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('landPassword', this)">👁️</span>
+      </div>
+      
+      <div id="forgotPasswordLink" style="text-align: right; margin-top: -5px; margin-bottom: 20px;">
+        <a href="#" style="color: var(--gold); font-size: 0.85rem; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 500; letter-spacing: 0.05em;" onclick="showForgotPasswordView(event)">Forgot Password?</a>
+      </div>
+      
+      <button class="btn btn-primary" style="width:100%; padding:0.8rem; font-size:1.05rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); transition:all 0.2s;" id="landSubmitBtn" onclick="submitLandingAuth()">Enter Platform</button>
     </div>
-    <button class="btn btn-primary" style="width:100%; padding:0.8rem; font-size:1.05rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); transition:all 0.2s;" id="landSubmitBtn" onclick="submitLandingAuth()">Enter Platform</button>
+
+    <!-- Forgot Password Reset Section — 3-Step OTP Flow -->
+    <div id="forgotPasswordSection" style="display:none;">
+      <!-- Step indicator -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:1.2rem;">
+        <div id="fpStep1Dot" style="width:24px;height:24px;border-radius:50%;background:#c9a84c;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#000;transition:all 0.3s;">1</div>
+        <div style="flex:1;max-width:30px;height:2px;background:rgba(201,168,76,0.2);border-radius:2px;" id="fpLine1"></div>
+        <div id="fpStep2Dot" style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#7a8ba0;transition:all 0.3s;">2</div>
+        <div style="flex:1;max-width:30px;height:2px;background:rgba(201,168,76,0.2);border-radius:2px;" id="fpLine2"></div>
+        <div id="fpStep3Dot" style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#7a8ba0;transition:all 0.3s;">3</div>
+      </div>
+
+      <!-- STEP 1: Email entry -->
+      <div id="fpStep1">
+        <h3 style="font-family:'Cinzel', serif; color:var(--gold); font-size:1.15rem; margin-bottom:0.4rem; text-align:center;">Forgot Password</h3>
+        <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:1.2rem; text-align:center; line-height:1.5;">Enter your registered email. We'll send a 6-digit OTP.</p>
+        <div class="field-group" style="margin-bottom:18px;">
+          <label>Email</label>
+          <input type="email" id="resetEmail" placeholder="your@email.com" style="padding:0.7rem; font-size:1rem;" onkeydown="if(event.key==='Enter')sendForgotOtp();">
+        </div>
+        <button class="btn btn-primary" id="fpSendOtpBtn" style="width:100%; padding:0.8rem; font-size:1rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); margin-bottom:1rem;" onclick="sendForgotOtp()">Send OTP →</button>
+      </div>
+
+      <!-- STEP 2: OTP entry -->
+      <div id="fpStep2" style="display:none;">
+        <h3 style="font-family:'Cinzel', serif; color:var(--gold); font-size:1.15rem; margin-bottom:0.4rem; text-align:center;">Enter OTP</h3>
+        <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:0.5rem; text-align:center; line-height:1.5;">A 6-digit code was sent to</p>
+        <p id="fpOtpEmailLabel" style="color:#c9a84c; font-size:0.83rem; font-weight:600; text-align:center; margin-bottom:1.2rem; word-break:break-all;"></p>
+        <div class="field-group" style="margin-bottom:18px;">
+          <label>6-Digit OTP Code</label>
+          <input type="text" id="resetOtp" maxlength="6" placeholder="000000"
+            style="padding:0.85rem; font-size:1.6rem; font-family:'Courier New',monospace; letter-spacing:0.4em; text-align:center; width:100%; box-sizing:border-box;"
+            onkeydown="if(event.key==='Enter')verifyForgotOtp();" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <button class="btn btn-primary" id="fpVerifyOtpBtn" style="width:100%; padding:0.8rem; font-size:1rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); margin-bottom:0.75rem;" onclick="verifyForgotOtp()">Verify OTP →</button>
+        <div style="text-align:center;">
+          <a href="#" style="color:var(--text-muted); font-size:0.8rem; text-decoration:none;" onclick="resendForgotOtp(event)">Resend OTP</a>
+        </div>
+      </div>
+
+      <!-- STEP 3: New Password -->
+      <div id="fpStep3" style="display:none;">
+        <h3 style="font-family:'Cinzel', serif; color:var(--gold); font-size:1.15rem; margin-bottom:0.4rem; text-align:center;">Set New Password</h3>
+        <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:1.2rem; text-align:center; line-height:1.5;">OTP verified ✅ Enter your new password.</p>
+        <div class="field-group" style="margin-bottom:15px; position:relative;">
+          <label>New Password</label>
+          <input type="password" id="resetNewPassword" placeholder="Min. 6 characters" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;">
+          <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('resetNewPassword', this)">👁️</span>
+        </div>
+        <div class="field-group" style="margin-bottom:22px; position:relative;">
+          <label>Confirm New Password</label>
+          <input type="password" id="resetConfirmPassword" placeholder="Repeat password" style="padding:0.7rem; font-size:1rem; width:100%; padding-right:40px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitForgotPasswordReset();">
+          <span style="position:absolute; right:10px; top:35px; cursor:pointer; font-size:1.2rem; color:var(--text-muted);" onclick="togglePasswordVisibility('resetConfirmPassword', this)">👁️</span>
+        </div>
+        <button class="btn btn-primary" id="fpResetBtn" style="width:100%; padding:0.8rem; font-size:1rem; border-radius:8px; background:linear-gradient(135deg, #c9a84c, #a88732); border:none; color:#000; font-weight:bold; box-shadow:0 4px 15px rgba(201,168,76,0.3); margin-bottom:1rem;" onclick="submitForgotPasswordReset()">Reset Password ✓</button>
+      </div>
+
+      <div style="text-align:center; margin-top:4px;">
+        <a href="#" style="color:var(--text-muted); font-size:0.82rem; text-decoration:none;" onclick="cancelForgotPassword(event)">← Back to Login</a>
+      </div>
+    </div>
+
     <div id="landError" style="color:#f87171; text-align:center; margin-top:1rem; font-size:0.85rem; min-height:1rem;"></div>
   </div>
 </div>
@@ -398,7 +468,7 @@ select option{background:#0b1422;}
   <div id="apiBanner" class="checking">
     <div class="api-dot pulse" id="apiDot" style="background:#c9a84c"></div>
     <div>
-      <div id="apiStatusText"><span class="spinner"></span>Connecting to FastAPI backend at http://localhost:8080...</div>
+      <div id="apiStatusText"><span class="spinner"></span>Connecting to FastAPI backend...</div>
       <div class="api-endpoint-list" id="apiEndpointList"></div>
     </div>
     <button class="btn btn-secondary" style="margin-left:auto;padding:.4rem .9rem;font-size:.75rem" onclick="checkAPIConnection()">↺ Retry</button>
@@ -638,7 +708,9 @@ select option{background:#0b1422;}
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
-const API = 'http://localhost:8080';
+// Auto-detect: if opened as file:// use absolute URL, otherwise relative.
+// Best practice: open http://localhost:8080 — run_app.bat does this automatically.
+const API = (location.protocol === 'file:') ? 'http://localhost:8080' : '';
 let apiOnline = false;
 
 // Indian civilization names (for styling)
@@ -814,7 +886,177 @@ function setAuthTab(mode) {
   document.getElementById('tabRegister').style.borderBottomColor = mode === 'register' ? 'var(--gold)' : 'transparent';
   document.getElementById('landNameGroup').style.display = mode === 'login' ? 'none' : 'block';
   document.getElementById('landSubmitBtn').innerText = mode === 'login' ? 'Enter Platform' : 'Create Account';
+  document.getElementById('forgotPasswordLink').style.display = mode === 'login' ? 'block' : 'none';
   document.getElementById('landError').innerText = '';
+}
+
+function showForgotPasswordView(event) {
+  if (event) event.preventDefault();
+  document.getElementById('authTabsHeader').style.display = 'none';
+  document.getElementById('authFieldsSection').style.display = 'none';
+  document.getElementById('forgotPasswordSection').style.display = 'block';
+  document.getElementById('landError').innerText = '';
+  // Pre-fill email if already entered
+  const existingEmail = document.getElementById('landEmail').value;
+  document.getElementById('resetEmail').value = existingEmail;
+  // Reset to step 1
+  setForgotStep(1);
+}
+
+function setForgotStep(step) {
+  document.getElementById('fpStep1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('fpStep2').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('fpStep3').style.display = step === 3 ? 'block' : 'none';
+  // Update dots
+  const dots = ['fpStep1Dot','fpStep2Dot','fpStep3Dot'];
+  const lines = ['fpLine1','fpLine2'];
+  dots.forEach((id, i) => {
+    const el = document.getElementById(id);
+    const active = i + 1 === step;
+    const done   = i + 1 < step;
+    el.style.background   = done ? '#4ade80' : active ? '#c9a84c' : 'rgba(201,168,76,0.15)';
+    el.style.color        = (active || done) ? '#000' : '#7a8ba0';
+    el.style.border       = (active || done) ? 'none' : '1px solid rgba(201,168,76,0.3)';
+    el.textContent        = done ? '✓' : (i + 1);
+  });
+  lines.forEach((id, i) => {
+    document.getElementById(id).style.background = i + 1 < step ? '#4ade80' : 'rgba(201,168,76,0.2)';
+  });
+  document.getElementById('landError').innerText = '';
+}
+
+function cancelForgotPassword(event) {
+  if (event) event.preventDefault();
+  document.getElementById('authTabsHeader').style.display = 'flex';
+  document.getElementById('authFieldsSection').style.display = 'block';
+  document.getElementById('forgotPasswordSection').style.display = 'none';
+  document.getElementById('landError').style.color = '#f87171';
+  document.getElementById('landError').innerText = '';
+  setForgotStep(1);
+}
+
+async function sendForgotOtp() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const errorDiv = document.getElementById('landError');
+  errorDiv.style.color = '#f87171';
+  if (!email) { errorDiv.innerText = 'Please enter your email address.'; return; }
+
+  const btn = document.getElementById('fpSendOtpBtn');
+  btn.disabled = true;
+  btn.innerText = 'Sending OTP...';
+  errorDiv.innerText = '';
+
+  try {
+    const res = await fetch(API + '/api/forgot-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
+    // Always move to step 2 regardless (to avoid email enumeration)
+    document.getElementById('fpOtpEmailLabel').innerText = email;
+    document.getElementById('resetOtp').value = '';
+    setForgotStep(2);
+    errorDiv.style.color = '#4ade80';
+    errorDiv.innerText = 'OTP sent! Check your inbox (also check spam).';
+  } catch (e) {
+    errorDiv.innerText = 'Network error: Make sure the FastAPI backend is running.';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Send OTP →';
+  }
+}
+
+async function resendForgotOtp(event) {
+  if (event) event.preventDefault();
+  document.getElementById('landError').style.color = '#f87171';
+  document.getElementById('landError').innerText = '';
+  setForgotStep(1);
+  // Brief delay then trigger send again
+  setTimeout(() => sendForgotOtp(), 50);
+}
+
+async function verifyForgotOtp() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const otp   = document.getElementById('resetOtp').value.trim();
+  const errorDiv = document.getElementById('landError');
+  errorDiv.style.color = '#f87171';
+
+  if (!otp || otp.length !== 6) { errorDiv.innerText = 'Please enter the 6-digit OTP.'; return; }
+
+  const btn = document.getElementById('fpVerifyOtpBtn');
+  btn.disabled = true;
+  btn.innerText = 'Verifying...';
+  errorDiv.innerText = '';
+
+  try {
+    const res = await fetch(API + '/api/verify-otp', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, otp })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errorDiv.innerText = data.detail || 'Invalid OTP. Please try again.';
+      return;
+    }
+    // OTP verified — advance to step 3
+    document.getElementById('resetNewPassword').value = '';
+    document.getElementById('resetConfirmPassword').value = '';
+    setForgotStep(3);
+    errorDiv.style.color = '#4ade80';
+    errorDiv.innerText = 'OTP verified! Now set your new password.';
+  } catch (e) {
+    errorDiv.innerText = 'Network error: Cannot reach the backend.';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Verify OTP →';
+  }
+}
+
+async function submitForgotPasswordReset() {
+  const email           = document.getElementById('resetEmail').value.trim();
+  const otp             = document.getElementById('resetOtp').value.trim();
+  const newPassword     = document.getElementById('resetNewPassword').value;
+  const confirmPassword = document.getElementById('resetConfirmPassword').value;
+  const errorDiv        = document.getElementById('landError');
+
+  errorDiv.style.color = '#f87171';
+  errorDiv.innerText   = '';
+
+  if (!newPassword || !confirmPassword) { errorDiv.innerText = 'Please fill in both password fields.'; return; }
+  if (newPassword.length < 6)           { errorDiv.innerText = 'Password must be at least 6 characters.'; return; }
+  if (newPassword !== confirmPassword)  { errorDiv.innerText = 'Passwords do not match.'; return; }
+
+  const btn = document.getElementById('fpResetBtn');
+  btn.disabled = true;
+  btn.innerText = 'Resetting...';
+
+  try {
+    const res = await fetch(API + '/api/reset-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, otp, new_password: newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) { errorDiv.innerText = data.detail || 'Error resetting password.'; return; }
+
+    errorDiv.style.color = '#4ade80';
+    errorDiv.innerText = '✅ Password reset! Redirecting to login...';
+
+    setTimeout(() => {
+      cancelForgotPassword();
+      document.getElementById('landEmail').value    = email;
+      document.getElementById('landPassword').value = '';
+      errorDiv.style.color = '#f87171';
+      errorDiv.innerText   = '';
+    }, 2000);
+
+  } catch (e) {
+    errorDiv.innerText = 'Network error: Make sure the FastAPI backend is running.';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Reset Password ✓';
+  }
 }
 
 async function submitLandingAuth() {
@@ -892,11 +1134,11 @@ async function checkAPIConnection() {
 
   banner.className = 'checking';
   dot.style.background = '#c9a84c';
-  text.innerHTML = '<span class="spinner"></span>Connecting to C++ REST API at http://localhost:8080...';
+  text.innerHTML = '<span class="spinner"></span>Connecting to FastAPI backend...';
   epList.textContent = '';
 
   try {
-    const data = await apiFetch('/');
+    const data = await apiFetch('/health');
     apiOnline = true;
     banner.className = 'connected';
     dot.className = 'api-dot';
@@ -912,7 +1154,7 @@ async function checkAPIConnection() {
     dot.style.background = '#f87171';
     text.innerHTML = `⚠️ <strong>FastAPI server not running.</strong> Start it in your terminal:
       <code style="background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;color:#fbbf24">cd backend && uvicorn main:app --reload --port 8080</code>`;
-    epList.innerHTML = `<span style="color:#f87171">Run: cd backend && uvicorn main:app --reload --port 8080 — then click Retry</span>`;
+    epList.innerHTML = `<span style="color:#f87171">Run: cd backend &amp;&amp; uvicorn main:app --reload --port 8080 — then open <strong>http://localhost:8080</strong></span>`;
     setButtonsEnabled(false);
     loadFallbackData();
   }
