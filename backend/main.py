@@ -40,7 +40,7 @@ from models import Civilization, ClusterResult
 from kdtree import KDTree
 from rtree_index import RTreeIndex
 from clustering import dbscan
-from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations, update_user_password, get_civilizations_by_user
+from database import init_db, create_user, get_user_by_email, get_user_by_id, add_custom_civilization, get_custom_civilizations, update_user_password, get_civilizations_by_user, get_all_civilizations, delete_custom_civilization, delete_builtin_civilization
 import hashlib
 import secrets
 
@@ -240,15 +240,33 @@ init_db()
 
 all_civs: list[Civilization] = []
 
-custom_rows = get_custom_civilizations()
-for row in custom_rows:
+# ── Load built-in civilizations from the database ──────────────
+for row in get_all_civilizations():
     c = Civilization(
-        name=row["name"], lat=row["lat"], lon=row["lon"],
-        start=row.get("start_year") or 0, end=row.get("end_year") or 0, region=row.get("region") or "Unknown",
-        resource=row.get("resource_density") or 50.0, knowledge=row.get("knowledge_density") or 50.0,
-        military=row.get("military_strength") or 50.0, added_by_name=row.get("added_by_name")
+        name=row["name"], lat=row["latitude"], lon=row["longitude"],
+        start=row.get("start_year") or 0, end=row.get("end_year") or 0,
+        region=row.get("region") or "Unknown",
+        resource=row.get("resource_density") or 50.0,
+        knowledge=row.get("knowledge_density") or 50.0,
+        military=row.get("military_strength") or 50.0,
     )
     all_civs.append(c)
+
+# ── Load custom civilizations added by users ───────────────────
+custom_rows = get_custom_civilizations()
+for row in custom_rows:
+    # Avoid duplicating if a custom civ has same name as a built-in
+    if not any(c.name == row["name"] for c in all_civs):
+        c = Civilization(
+            name=row["name"], lat=row["lat"], lon=row["lon"],
+            start=row.get("start_year") or 0, end=row.get("end_year") or 0,
+            region=row.get("region") or "Unknown",
+            resource=row.get("resource_density") or 50.0,
+            knowledge=row.get("knowledge_density") or 50.0,
+            military=row.get("military_strength") or 50.0,
+            added_by_name=row.get("added_by_name")
+        )
+        all_civs.append(c)
 
 kd_tree = KDTree()
 kd_tree.build(all_civs)
@@ -256,7 +274,7 @@ kd_tree.build(all_civs)
 r_tree = RTreeIndex()
 r_tree.add_default_regions()
 
-print(f"[OK] Loaded {len(all_civs)} civilizations")
+print(f"[OK] Loaded {len(all_civs)} civilizations (built-in + custom)")
 print(f"[OK] KD-Tree built: {kd_tree.node_count} nodes")
 print(f"[OK] R-Tree built:  {len(r_tree.regions)} regions")
 
@@ -506,6 +524,46 @@ def get_civilizations():
     return [c.to_dict() for c in all_civs]
 
 
+class DeleteCivilizationRequest(BaseModel):
+    token: int
+
+@app.delete("/api/civilizations/{civ_name}")
+def delete_civilization(civ_name: str, req: DeleteCivilizationRequest):
+    """Delete a civilization (built-in or custom)."""
+    global all_civs
+
+    user = get_user_by_id(req.token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    target = next((c for c in all_civs if c.name == civ_name), None)
+    if not target:
+        raise HTTPException(status_code=404, detail=f"Civilization '{civ_name}' not found")
+
+    if target.added_by_name:
+        # Custom civilization ownership check
+        deleted = delete_custom_civilization(civ_name, user["id"])
+        if not deleted:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only delete civilizations you added yourself"
+            )
+    else:
+        # Built-in civilization
+        deleted = delete_builtin_civilization(civ_name)
+        if not deleted:
+            raise HTTPException(
+                status_code=500,
+                detail="Error deleting built-in civilization from database"
+            )
+
+    # Remove from in-memory list and rebuild KD-Tree
+    all_civs = [c for c in all_civs if c.name != civ_name]
+    kd_tree.build(all_civs)
+
+    return {"message": f"'{civ_name}' deleted successfully", "total": len(all_civs)}
+
+
 @app.get("/api/nearest")
 def nearest(
     lat: float = Query(..., ge=-90, le=90, description="Latitude"),
@@ -620,7 +678,7 @@ def stats():
     }
 
 
-# ── Chat endpoint (Gemini) ──────────────────────────────────────
+# ── Chat endpoint (OpenAI primary · Gemini fallback) ───────────
 
 class ChatMessage(BaseModel):
     role: str  # "user" or "assistant"
@@ -634,7 +692,150 @@ class ChatResponse(BaseModel):
     reply: str
     ok: bool = True
     model: str | None = None
+    provider: str | None = None   # "openai" | "gemini" | "offline"
     error: str | None = None
+
+
+CHAT_SYSTEM = """You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" project.
+
+PROJECT CONTEXT:
+- A spatial data system indexing historical civilizations by latitude, longitude, and time
+- KD-Tree backend: nearest neighbor O(log n), range search O(log n+k), built in Python/C++
+- FastAPI Python backend exposing: /api/civilizations, /api/nearest, /api/range, /api/cluster, /api/compare, /api/rtree, /api/stats
+- DBSCAN clustering built on top of KD-Tree range search (no external libraries)
+- Leaflet.js frontend with CARTO Dark tiles, live map click queries
+- Dataset: 59 civilizations — 47 Indian dynasties (Indus Valley through Sikh Empire) + 12 global civilizations
+- R-Tree: 8 named bounding-box regions (South Asia, Mediterranean, Middle East, East Asia, Mesoamerica, North Africa, Central Asia, South America)
+
+You are a general-purpose AI assistant. Answer ANY question — about this project, history, geography, programming, algorithms, or any other topic. Give specific technical answers for project questions. Be concise, friendly, and technically accurate.
+Do not use excessive markdown headers in your responses."""
+
+
+def _build_live_context() -> str:
+    """Build a complete live-data context containing all civilizations currently in the database."""
+    try:
+        civ_list = []
+        for c in all_civs:
+            start_fmt = f"{abs(c.start_year)} BCE" if c.start_year < 0 else f"{c.start_year} CE"
+            end_fmt = f"{abs(c.end_year)} BCE" if c.end_year < 0 else f"{c.end_year} CE"
+            added_by = f" (Added by: {c.added_by_name})" if c.added_by_name else ""
+            civ_list.append(
+                f"- Name: {c.name}{added_by} | Lat: {c.latitude}, Lon: {c.longitude} | Period: {start_fmt} to {end_fmt} | "
+                f"Region: {c.region} | Resource Density: {c.resource_density}, Knowledge Density: {c.knowledge_density}, "
+                f"Military Strength: {c.military_strength} | Spatial Score: {c.spatial_score()}"
+            )
+        civs_str = "\n".join(civ_list)
+        return (
+            f"There are currently {len(all_civs)} civilizations in the database:\n"
+            f"{civs_str}\n\n"
+            f"KD-Tree nodes: {kd_tree.node_count}. R-Tree regions: {len(r_tree.regions)}."
+        )
+    except Exception as e:
+        return f"Live dataset loaded with {len(all_civs)} civilizations. Error loading details: {e}"
+
+
+async def _call_openai(message: str, history: list[ChatMessage], system: str) -> str:
+    """Call OpenAI Chat Completions API asynchronously."""
+    from openai import AsyncOpenAI
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    model   = os.environ.get("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+
+    client = AsyncOpenAI(api_key=api_key)
+    messages = [{"role": "system", "content": system}]
+    for m in history:
+        messages.append({"role": "user" if m.role == "user" else "assistant", "content": m.content})
+    messages.append({"role": "user", "content": message})
+
+    resp = await client.chat.completions.create(
+        model=model,
+        messages=messages,
+        max_tokens=700,
+        temperature=0.7,
+    )
+    return resp.choices[0].message.content or "No response from OpenAI."
+
+
+async def _call_gemini(message: str, history: list[ChatMessage], system: str) -> str:
+    """Call Gemini generateContent API asynchronously."""
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    model   = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash").strip() or "gemini-1.5-flash"
+
+    gemini_messages = []
+    for m in history:
+        role = "user" if m.role == "user" else "model"
+        gemini_messages.append({"role": role, "parts": [{"text": m.content}]})
+    gemini_messages.append({"role": "user", "parts": [{"text": message}]})
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system}]},
+        "contents": gemini_messages,
+        "generationConfig": {"maxOutputTokens": 700}
+    }
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+        )
+    resp.raise_for_status()
+    data = resp.json()
+    if "candidates" in data and data["candidates"]:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    return "No response from Gemini."
+
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest) -> ChatResponse:
+    """
+    AI chat proxy — tries providers in order:
+      1. OpenAI   (if OPENAI_API_KEY is set)
+      2. Gemini   (if GEMINI_API_KEY is set)
+      3. Friendly error message
+    """
+    if not req.message or not req.message.strip():
+        return ChatResponse(reply="Please type a message.", ok=False, error="empty_message")
+
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    openai_model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+    gemini_model = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash").strip() or "gemini-1.5-flash"
+
+    system = CHAT_SYSTEM + "\n\nLIVE CONTEXT:\n" + _build_live_context()
+
+    # ── 1. Try OpenAI ──────────────────────────────────────────
+    if openai_key and openai_key != "YOUR_OPENAI_API_KEY_HERE":
+        try:
+            reply = await _call_openai(req.message, req.history, system)
+            return ChatResponse(reply=reply, ok=True, model=openai_model, provider="openai")
+        except Exception as e:
+            print(f"[CHAT] OpenAI failed: {e}. Trying Gemini...")
+
+    # ── 2. Try Gemini ──────────────────────────────────────────
+    if gemini_key and gemini_key != "YOUR_GEMINI_API_KEY_HERE":
+        try:
+            reply = await _call_gemini(req.message, req.history, system)
+            return ChatResponse(reply=reply, ok=True, model=gemini_model, provider="gemini")
+        except Exception as e:
+            print(f"[CHAT] Gemini failed: {e}")
+            return ChatResponse(
+                reply="AI service is temporarily unavailable. Please try again in a moment.",
+                ok=False, model=gemini_model, provider="gemini", error=str(e)[:200]
+            )
+
+    # ── 3. Neither key configured ──────────────────────────────
+    return ChatResponse(
+        reply=(
+            "🤖 **AI chat is not configured yet.**\n\n"
+            "Add your OpenAI API key to `backend/.env`:\n"
+            "```\nOPENAI_API_KEY=sk-...\n```\n"
+            "Then restart the backend. You can get a key at **platform.openai.com/api-keys**."
+        ),
+        ok=False,
+        provider="offline",
+        error="no_api_key",
+    )
+
 
 CHAT_SYSTEM = """You are the Spatial Intelligence Assistant for the "Civilization Spatial Intelligence Mapper" project.
 
@@ -650,91 +851,3 @@ You are a general-purpose AI assistant. You can answer ANY question — about th
 
 Be concise, friendly, and technically accurate."""
 
-
-@app.post("/api/chat")
-async def chat(req: ChatRequest) -> ChatResponse:
-    """
-    Proxy chat requests to Gemini API (key stored server-side).
-
-    Frontend sends only the user message + (optional) short history.
-    The Gemini API key is read from GEMINI_API_KEY env var (via .env).
-    """
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    model = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash").strip() or "gemini-1.5-flash"
-
-    if not req.message or not req.message.strip():
-        return ChatResponse(reply="Please type a message.", ok=False, model=model, error="empty_message")
-
-    if not api_key:
-        # Don't crash the frontend—return a friendly message instead.
-        return ChatResponse(
-            reply=(
-                "Chat is not configured yet. Set `GEMINI_API_KEY` in `backend/.env` and restart the backend.\n\n"
-                "Tip: You can still use the UI—project suggestions will work even without AI."
-            ),
-            ok=False,
-            model=model,
-            error="missing_api_key",
-        )
-
-    # Add lightweight live context (kept short to reduce tokens)
-    try:
-        region_set = sorted({(c.region or "Unknown").strip() for c in all_civs})
-        ctx = (
-            f"Live dataset: {len(all_civs)} civilizations across {len(region_set)} region(s): "
-            + ", ".join(region_set[:12])
-            + ("..." if len(region_set) > 12 else "")
-            + f". KD-Tree nodes: {kd_tree.node_count}. R-Tree regions indexed: {len(r_tree.regions)}."
-        )
-    except Exception:
-        ctx = "Live dataset loaded. (Context unavailable.)"
-
-    system = CHAT_SYSTEM + "\n\nLIVE CONTEXT:\n" + ctx
-
-    # Format history for Gemini
-    gemini_messages = []
-    for m in req.history:
-        role = "user" if m.role == "user" else "model"
-        gemini_messages.append({"role": role, "parts": [{"text": m.content}]})
-    gemini_messages.append({"role": "user", "parts": [{"text": req.message}]})
-
-    payload = {
-        "systemInstruction": {
-            "parts": [{"text": system}]
-        },
-        "contents": gemini_messages
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            )
-        
-        if not resp.is_success:
-            if resp.status_code == 400 and "API key not valid" in resp.text:
-                raise HTTPException(status_code=401, detail="Invalid Gemini API key")
-            raise HTTPException(status_code=resp.status_code, detail=resp.text)
-
-        data = resp.json()
-        if "candidates" in data and len(data["candidates"]) > 0:
-            reply = data["candidates"][0]["content"]["parts"][0]["text"]
-        else:
-            reply = "I'm sorry, I couldn't generate a response."
-            
-        return ChatResponse(reply=reply, ok=True, model=model)
-
-    except httpx.TimeoutException:
-        return ChatResponse(reply="The AI service timed out. Please try again.", ok=False, model=model, error="timeout")
-    except HTTPException:
-        raise
-    except Exception as e:
-        # Surface a stable error response so the UI can show a friendly message.
-        return ChatResponse(
-            reply="I couldn’t reach the AI service right now. Please try again in a moment.",
-            ok=False,
-            model=model,
-            error=str(e)[:200],
-        )

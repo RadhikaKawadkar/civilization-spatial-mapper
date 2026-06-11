@@ -1,165 +1,84 @@
-# Civilization Spatial Intelligence Mapper
+# Civilization Spatial Intelligence Mapper 🌍
 
-A spatial data system that indexes historical civilizations by latitude, longitude, and time using KD-Trees and R-Trees. Exposes a FastAPI REST backend and a Leaflet.js map frontend.
-
----
-
-## Problem Statement
-
-Historical civilizations are inherently spatial — they rise and fall at specific coordinates over time. Standard databases answer "find civilization by name", but spatial questions like "which civilizations existed within 500 km of Rome?" or "which clusters of civilizations share the same geographic region?" require spatial indexing structures.
-
-This project implements those structures from scratch (KD-Tree in C++, mirrored in Python) and wraps them in a production-style REST API.
+Welcome to the **Civilization Spatial Intelligence Mapper**, an interactive, full-stack web application designed to map and query historical civilizations and dynasties across the globe (with a special emphasis on Indian history). The project leverages advanced spatial data structures like KD-Trees and R-Trees to provide lightning-fast geographic queries, nearest neighbor searches, and regional data clustering.
 
 ---
 
-## Architecture
+## 🚀 Features
 
-```
-┌─────────────────────────────────────┐
-│   Frontend (civilization_mapper_    │
-│   frontend.html — Leaflet.js)       │
-└────────────────┬────────────────────┘
-                 │ HTTP fetch()
-┌────────────────▼────────────────────┐
-│   FastAPI Backend  (backend/)       │
-│                                     │
-│   /run        → subprocess C++ exe │
-│   /api/nearest → KD-Tree NN        │
-│   /api/range   → KD-Tree range     │
-│   /api/cluster → DBSCAN            │
-│   /api/compare → score comparison  │
-│   /api/rtree   → R-Tree regions    │
-│   /api/stats   → tree metrics      │
-└────────────────┬────────────────────┘
-                 │
-┌────────────────▼────────────────────┐
-│   C++ Spatial Engine  (core/)       │
-│   KD-Tree + R-Tree (mapper.exe)     │
-└────────────────┬────────────────────┘
-                 │
-┌────────────────▼────────────────────┐
-│   Data  (data/final_dataset.csv)    │
-│   47 civilizations, lat/lon/time    │
-└─────────────────────────────────────┘
-```
+- **Interactive Leaflet Map**: Visualize civilizations on a high-performance CARTO Dark map. Clicking anywhere on the map triggers a real-time nearest-neighbor search.
+- **Advanced Spatial Query Engine**:
+  - **KD-Tree Nearest Neighbor**: Instantly find the closest civilization to any latitude/longitude coordinate.
+  - **KD-Tree Range Query**: Select a bounding box (min/max coordinates) to find all civilizations within that specific region.
+  - **R-Tree Region Lookup**: Fast bounded region indexing.
+- **User Authentication**: Secure Login and Signup functionality backed by Supabase.
+- **Dynamic User Profiles**: Users can view their personally uploaded dynasties ("My Posts") and update their passwords.
+- **Live Data Entry**: Add custom civilizations directly from the UI to the cloud database, which dynamically rebuilds the KD-Tree in real-time.
+- **Interactive UI Components**: Includes a Civilization-Region Matrix Table with instant search filtering, a Regional Heat Map, and a dynamic KD-Tree visualizer canvas.
 
 ---
 
-## Project Structure
+## 🛠️ Tech Stack
 
-```
-.
-├── backend/
-│   ├── main.py          # FastAPI app — all endpoints
-│   ├── models.py        # Civilization + ClusterResult dataclasses
-│   ├── kdtree.py        # KD-Tree (build, nearest, range, neighbors_within)
-│   ├── rtree_index.py   # R-Tree bounding box regions
-│   ├── clustering.py    # DBSCAN using KD-Tree range search
-│   ├── loader.py        # CSV loader (supports both CSV formats)
-│   └── requirements.txt
-├── core/
-│   ├── kd_tree.cpp / .h
-│   └── rtree/rtree.cpp / .h
-├── data/
-│   ├── final_dataset.csv   # 47 Indian civilizations
-│   └── csv_loader.cpp / .h
-├── analytics/
-│   ├── benchmark.cpp / .h
-│   └── spatial_scaling_test.cpp
-├── utils/logger.cpp / .h
-├── main.cpp                # C++ console entry point
-├── CMakeLists.txt
-├── Makefile
-└── civilization_mapper_frontend.html
+### Frontend
+- **HTML5 / CSS3 / Vanilla JavaScript**: A completely custom, lightweight, framework-free frontend built for maximum performance.
+- **Leaflet.js**: An open-source JavaScript library for interactive maps, using beautifully styled CARTO Dark map tiles.
+- **Custom UI System**: Glassmorphism effects, rich gold/dark themes, and interactive animations.
+
+### Backend
+- **Python 3**: The core programming language for the backend server and spatial logic.
+- **FastAPI**: A modern, high-performance web framework used to build the RESTful API.
+- **Uvicorn**: An ASGI web server implementation for Python.
+
+### Database & Storage
+- **Supabase (PostgreSQL)**: The cloud-native relational database. All user accounts and civilization data are securely stored and queried directly from the cloud.
+
+### Core Algorithms (Implemented in Python)
+- **KD-Tree (`kdtree.py`)**: For ultra-fast nearest neighbor spatial lookups.
+- **R-Tree (`rtree_index.py`)**: For spatial bounding box queries.
+- **DBSCAN Clustering (`clustering.py`)**: Density-based spatial clustering of applications with noise.
+
+---
+
+## 📁 File Structure
+
+```text
+civilization-spatial-mapper/
+│
+├── civilization_mapper_frontend.html  # The main application UI (Frontend).
+├── run_app.bat                        # Batch script to auto-install dependencies, start the backend, and open the UI.
+├── supabase_schema.sql                # SQL initialization script used to set up the Supabase database tables.
+├── README.md                          # Project documentation.
+│
+└── backend/                           # Python FastAPI Backend
+    ├── main.py                        # The primary FastAPI server and API endpoints (login, query, civilizations).
+    ├── database.py                    # Supabase client integration (auth, data fetching, password updates).
+    ├── models.py                      # Data structures and Pydantic models for the API.
+    ├── kdtree.py                      # KD-Tree spatial algorithm implementation.
+    ├── rtree_index.py                 # R-Tree bounding box algorithm implementation.
+    ├── clustering.py                  # DBSCAN algorithm for spatial data clustering.
+    ├── transfer_data.py               # Utility script used previously to migrate local CSV data to Supabase cloud.
+    ├── requirements.txt               # Python package dependencies (fastapi, supabase, pydantic, etc.).
+    └── .env                           # Environment file containing SUPABASE_URL and SUPABASE_KEY.
 ```
 
 ---
 
-## How to Run
+## ⚙️ How It Works
 
-### 1. Start the FastAPI backend
-
-```bash
-cd backend
-uvicorn main:app --reload --port 8080
-```
-
-The API will be live at `http://localhost:8080`.  
-Interactive docs: `http://localhost:8080/docs`
-
-### 2. Open the frontend
-
-Open `civilization_mapper_frontend.html` directly in Chrome/Firefox.  
-It connects to `http://localhost:8080` automatically.
-
-### 3. Build and run the C++ engine (optional)
-
-```bash
-# Windows (MinGW)
-mingw32-make
-
-# Linux / macOS
-make
-
-# Run standalone
-./mapper.exe
-```
-
-The `/run` endpoint executes `mapper.exe` via subprocess and returns its output.
+1. **Initialization**: When the backend server boots (`main.py`), it establishes a connection to Supabase via `database.py`. It pulls all global civilizations and user-submitted custom civilizations directly from the cloud database.
+2. **Tree Building**: The backend immediately processes the raw coordinate data to build a highly optimized KD-Tree in memory.
+3. **Frontend Communication**: The frontend (`civilization_mapper_frontend.html`) communicates asynchronously with the FastAPI server via REST endpoints (e.g., `/api/civilizations`, `/api/nearest`).
+4. **Spatial Searching**: When a user clicks the map, the frontend sends the click coordinates to the `/api/nearest` backend endpoint. The Python backend traverses the KD-Tree, instantly returning the geographically closest civilization.
+5. **Data Integration**: If an authenticated user adds a new civilization through the web UI, the backend commits it to the Supabase database and automatically dynamically re-balances the in-memory KD-Tree to include the new point without requiring a server restart.
 
 ---
 
-## API Endpoints
+## 🏁 Getting Started
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check |
-| GET | `/run` | Execute C++ engine, return stdout |
-| GET | `/api/civilizations` | All civilizations |
-| GET | `/api/nearest?lat=&lon=` | KD-Tree nearest neighbor |
-| GET | `/api/range?latMin=&latMax=&lonMin=&lonMax=` | KD-Tree range query |
-| GET | `/api/cluster?eps=&min_pts=` | DBSCAN geographic clustering |
-| GET | `/api/compare?a=&b=` | Compare two civilizations by score |
-| GET | `/api/rtree?lat=&lon=` | R-Tree region lookup |
-| GET | `/api/stats` | Tree node counts and speedup metrics |
-
-### Example calls
-
-```bash
-# Nearest civilization to central India
-curl "http://localhost:8080/api/nearest?lat=20&lon=78"
-
-# All civilizations in South Asia bounding box
-curl "http://localhost:8080/api/range?latMin=8&latMax=35&lonMin=60&lonMax=97"
-
-# DBSCAN clusters with 10-degree radius, min 2 points
-curl "http://localhost:8080/api/cluster?eps=10&min_pts=2"
-
-# Execute C++ engine
-curl "http://localhost:8080/run"
-```
-
----
-
-## Algorithms
-
-**KD-Tree** — alternates split axis (latitude / longitude) at each depth level.  
-- Nearest neighbor: O(log n) average with branch pruning  
-- Range query: O(log n + k) where k = results returned  
-
-**DBSCAN** — density-based clustering, no cluster count needed.  
-- Uses `kdtree.neighbors_within(lat, lon, eps)` as the ε-neighborhood query  
-- Discovers geographic hotspots (Gangetic Plain, Deccan, Mediterranean) automatically  
-- Points with fewer than `min_pts` neighbors are labeled noise (-1)  
-
-**R-Tree** — 8 named bounding box regions for continent-level lookups.  
-- Point-in-region: O(regions) — constant for fixed region count  
-
----
-
-## Dependencies
-
-- Python 3.10+
-- `fastapi==0.115.14`
-- `uvicorn==0.35.0`
-- C++17 compiler (for the optional C++ engine)
+1. **Prerequisites**: Ensure you have **Python 3** installed on your system.
+2. **Environment Setup**: Ensure your `backend/.env` file is properly configured with your Supabase credentials (`SUPABASE_URL` and `SUPABASE_KEY`).
+3. **Run the Project**: Simply double-click the **`run_app.bat`** file. 
+   - This script will automatically install missing Python libraries.
+   - It will launch the FastAPI backend server on port `8080`.
+   - It will automatically open `civilization_mapper_frontend.html` in your default web browser.

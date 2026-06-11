@@ -346,6 +346,16 @@ select option{background:#0b1422;}
 #chatSend:hover{background:linear-gradient(135deg,#1e7db5,#1060a0);transform:scale(1.05);}
 #chatSend:disabled{opacity:.35;cursor:not-allowed;transform:none;}
 
+/* ── DELETE BUTTON (for civilizations) ── */
+.btn-delete-civ{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;font-size:.72rem;border-radius:4px;
+  background:transparent;border:1px solid rgba(248,113,113,.4);
+  color:#f87171;cursor:pointer;font-family:'Rajdhani',sans-serif;
+  font-weight:600;transition:all .15s;white-space:nowrap;
+}
+.btn-delete-civ:hover{background:rgba(248,113,113,.12);border-color:#f87171;}
+
 @keyframes borderGlow{0%,100%{opacity:.4}50%{opacity:1}}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg-deep);}::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px;}
 </style>
@@ -505,6 +515,21 @@ select option{background:#0b1422;}
   <div id="addOutput" class="output-panel" style="display:none"></div>
 </div>
 
+<!-- ── DELETE CIVILIZATION ── -->
+<div class="card">
+  <div class="card-title"><span>🗑</span> Delete Civilization</div>
+  <div class="input-grid" style="grid-template-columns: 1fr;">
+    <div class="field-group">
+      <label>Name</label>
+      <input type="text" id="delCivName" placeholder="e.g. Chola Empire">
+    </div>
+  </div>
+  <div class="btn-row" style="margin-top: 15px;">
+    <button class="btn btn-danger" onclick="deleteCivilizationByNameInput()">■ Delete from KD-Tree</button>
+  </div>
+  <div id="deleteOutput" class="output-panel" style="display:none"></div>
+</div>
+
 <!-- ── QUERY ENGINE ── -->
 <div class="card">
   <div class="card-title"><span>🔎</span> Spatial Query Engine</div>
@@ -579,7 +604,7 @@ select option{background:#0b1422;}
     <table class="data-table" id="civTable">
       <thead><tr>
         <th>Civilization</th><th>Region</th><th>Lat</th><th>Lon</th>
-        <th>Resource</th><th>Knowledge</th><th>Military</th><th>Score</th>
+        <th>Resource</th><th>Knowledge</th><th>Military</th><th>Score</th><th>Action</th>
       </tr></thead>
       <tbody id="civTableBody"></tbody>
     </table>
@@ -650,14 +675,12 @@ select option{background:#0b1422;}
     <button class="chat-header-close" onclick="toggleChat()">✕</button>
   </div>
   <div id="chatMessages">
-    <div class="chat-msg assistant">🔥 Hello! I'm your <strong>Spatial Intelligence Assistant.</strong><br><br>This project connects a <strong>C++ REST API backend</strong> to this frontend using HTTP requests. Ask me how it works!<br><br>What would you like to know?</div>
+    <div class="chat-msg assistant">🔥 Hello! I'm your <strong>Spatial Intelligence Assistant.</strong><br><br>What would you like to know about the civilizations?</div>
   </div>
   <div class="chat-suggestions" id="chatSuggestions">
-    <span class="chat-suggestion" onclick="askSuggestion(this)">How does the REST API work?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">How does KD-Tree nearest search work?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">What is CORS and why does it matter?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">Which Indian civilizations are included?</span>
-    <span class="chat-suggestion" onclick="askSuggestion(this)">KD-Tree vs R-Tree difference?</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">Which civilizations are included in the dataset?</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">Tell me about the Maurya and Mughal Empires.</span>
+    <span class="chat-suggestion" onclick="askSuggestion(this)">How is the spatial score calculated?</span>
   </div>
   <div class="chat-input-row">
     <textarea id="chatInput" placeholder="Ask about the project..." rows="1"
@@ -831,9 +854,13 @@ async function fetchUserPosts() {
     }
     let html = '<ul style="list-style:none; padding:0; margin:0;">';
     data.forEach(c => {
-      html += `<li style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
-        <span><strong style="color:var(--gold)">${c.name}</strong> (${c.region})</span>
-        <span style="color:var(--text-muted)">Score: ${score(c)}</span>
+      html += `<li style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div>
+          <strong style="color:var(--gold)">${c.name}</strong>
+          <span style="color:var(--text-muted); font-size:.82rem;"> — ${c.region}</span><br>
+          <span style="color:var(--text-muted); font-size:.75rem;">Score: ${score(c)}</span>
+        </div>
+        <button class="btn-delete-civ" onclick="deleteCivilization('${c.name.replace(/'/g,"\\'")}')">🗑 Delete</button>
       </li>`;
     });
     html += '</ul>';
@@ -1551,10 +1578,12 @@ function renderTable() {
     const cls=s>=85?'score-high':s>=77?'score-mid':'score-low';
     const tr=document.createElement('tr');
     tr.className = ind ? 'indian-row' : '';
+    const actionCell = `<button class="btn-delete-civ" onclick="event.stopPropagation(); deleteCivilization('${c.name.replace(/'/g,"\\'")}')" title="Delete civilization" style="padding: 2px 6px; font-size: 0.8rem; font-weight: bold; border-color: rgba(248,113,113,.4); color: #f87171;">✕</button>`;
     tr.innerHTML=`<td><strong>${ind?'🇮🇳 ':''}${c.name}</strong></td>
       <td>${c.region}</td><td>${(+c.latitude).toFixed(1)}°</td><td>${(+c.longitude).toFixed(1)}°</td>
       <td>${c.resource_density}</td><td>${c.knowledge_density}</td><td>${c.military_strength}</td>
-      <td><span class="score-badge ${cls}">${s}</span></td>`;
+      <td><span class="score-badge ${cls}">${s}</span></td>
+      <td>${actionCell}</td>`;
     tr.addEventListener('click', () => pulseMarker(c));
     body.appendChild(tr);
   });
@@ -2158,6 +2187,159 @@ function refreshUI() {
 // ════════════════════════════════════════════════
 //  AI CHAT — smart local answers + optional API
 // ════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  DELETE CIVILIZATION
+// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  DELETE CIVILIZATION & UNDO / REDO
+// ════════════════════════════════════════════════
+let deleteUndoStack = [];
+let deleteRedoStack = [];
+
+function updateUndoRedoButtons() {
+  const btnUndo = document.getElementById('btnUndoDelete');
+  const btnRedo = document.getElementById('btnRedoDelete');
+  if (btnUndo) btnUndo.disabled = deleteUndoStack.length === 0;
+  if (btnRedo) btnRedo.disabled = deleteRedoStack.length === 0;
+}
+
+async function deleteCivilization(name) {
+  if (!authToken) { alert('Please login first.'); return; }
+  if (!confirm(`Delete "${name}" from the KD-Tree and database?\n\nThis cannot be undone.`)) return;
+
+  try {
+    const res = await fetch(API + `/api/civilizations/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: authToken })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail || 'Error deleting civilization.');
+      return;
+    }
+    
+    // Save to Undo stack
+    const deletedCiv = civilizations.find(c => c.name === name);
+    if (deletedCiv) {
+      deleteRedoStack = []; // Clear redo stack on new delete
+      deleteUndoStack.push({
+        action: 'delete',
+        data: { ...deletedCiv }
+      });
+      updateUndoRedoButtons();
+    }
+
+    // Remove locally
+    civilizations = civilizations.filter(c => c.name !== name);
+    refreshUI();
+    // Refresh the posts list if it's open
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal && profileModal.style.display !== 'none') {
+      fetchUserPosts();
+    }
+    // Show success feedback
+    const out = document.getElementById('deleteOutput') || document.getElementById('addOutput');
+    if (out) {
+      out.style.display = 'block';
+      out.innerHTML = `<span class="ok">🗑 "${name}" deleted from KD-Tree & Database.</span>`;
+    }
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  }
+}
+
+async function deleteCivilizationByNameInput() {
+  const input = document.getElementById('delCivName');
+  const name = input.value.trim();
+  if (!name) {
+    alert("Please enter a civilization name to delete.");
+    return;
+  }
+  await deleteCivilization(name);
+  input.value = '';
+}
+
+async function undoDelete() {
+  if (deleteUndoStack.length === 0) return;
+  const item = deleteUndoStack.pop();
+  deleteRedoStack.push(item);
+  updateUndoRedoButtons();
+  
+  if (item.action === 'delete') {
+    const c = item.data;
+    const payload = {
+      name: c.name,
+      lat: c.latitude,
+      lon: c.longitude,
+      region: c.region || 'Unknown',
+      resource: c.resource_density || 75,
+      knowledge: c.knowledge_density || 75,
+      military: c.military_strength || 75,
+      token: authToken
+    };
+    
+    try {
+      const res = await fetch(API + '/api/civilizations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Error restoring civilization");
+      
+      const civ = data.civilization;
+      civilizations.push(civ);
+      refreshUI();
+      
+      const out = document.getElementById('deleteOutput') || document.getElementById('addOutput');
+      if (out) {
+        out.style.display = 'block';
+        out.innerHTML = `<span class="ok">↶ Undone: "${c.name}" restored to KD-Tree & Database.</span>`;
+      }
+    } catch(e) {
+      alert("Undo failed: " + e.message);
+      deleteUndoStack.push(item);
+      deleteRedoStack.pop();
+      updateUndoRedoButtons();
+    }
+  }
+}
+
+async function redoDelete() {
+  if (deleteRedoStack.length === 0) return;
+  const item = deleteRedoStack.pop();
+  deleteUndoStack.push(item);
+  updateUndoRedoButtons();
+  
+  if (item.action === 'delete') {
+    const c = item.data;
+    try {
+      const res = await fetch(API + `/api/civilizations/${encodeURIComponent(c.name)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: authToken })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Error re-deleting civilization");
+      
+      civilizations = civilizations.filter(x => x.name !== c.name);
+      refreshUI();
+      
+      const out = document.getElementById('deleteOutput') || document.getElementById('addOutput');
+      if (out) {
+        out.style.display = 'block';
+        out.innerHTML = `<span class="ok">↷ Redone: "${c.name}" deleted from KD-Tree & Database.</span>`;
+      }
+    } catch(e) {
+      alert("Redo failed: " + e.message);
+      deleteRedoStack.push(item);
+      deleteUndoStack.pop();
+      updateUndoRedoButtons();
+    }
+  }
+}
+
 let chatOpen = false, chatHistory = [];
 const CHAT_KEY_STORAGE = 'civ_gemini_key';
 
