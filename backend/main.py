@@ -79,13 +79,13 @@ def _send_gmail_sync(to_email: str, subject: str, html_body: str) -> bool:
             server.login(GMAIL_SENDER, GMAIL_APP_PASSWORD)
             server.sendmail(GMAIL_SENDER, to_email, msg.as_string())
 
-        print(f"[EMAIL] ✓ Sent to {to_email}: {subject}")
+        print(f"[EMAIL] [OK] Sent to {to_email}: {subject}")
         return True
     except smtplib.SMTPAuthenticationError:
-        print("[EMAIL] ✗ Gmail auth failed — check GMAIL_APP_PASSWORD in backend/.env")
+        print("[EMAIL] [ERROR] Gmail auth failed — check GMAIL_APP_PASSWORD in backend/.env")
         return False
     except Exception as e:
-        print(f"[EMAIL] ✗ Error sending email: {e}")
+        print(f"[EMAIL] [ERROR] Error sending email: {e}")
         return False
 
 

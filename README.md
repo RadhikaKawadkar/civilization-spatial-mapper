@@ -77,11 +77,56 @@ civilization-spatial-mapper/
 
 ---
 
-## 🏁 Getting Started
+## ⚙️ How to Install & Setup
 
-1. **Prerequisites**: Ensure you have **Python 3** and **PostgreSQL** installed on your system.
-2. **Environment Setup**: Ensure your `backend/.env` file is properly configured with your PostgreSQL connection string (`DATABASE_URL`), API keys, and Gmail SMTP credentials.
-3. **Run the Project**: Simply double-click the **`run_app.bat`** file. 
-   - This script will automatically install missing Python libraries.
-   - It will launch the FastAPI backend server on port `8080`.
-   - It will automatically open `civilization_mapper_frontend.html` in your default web browser.
+Follow these steps to set up and run the project locally on your machine:
+
+### 1. Prerequisites
+- **Python 3.10+**: Ensure Python is installed and added to your system's PATH.
+- **PostgreSQL**: Install PostgreSQL server locally or use a remote instance.
+
+### 2. Database Setup
+1. Log in to your PostgreSQL instance (via pgAdmin, psql, or command line).
+2. Create a new database named `civilization_mapper`:
+   ```sql
+   CREATE DATABASE civilization_mapper;
+   ```
+   *Note: The backend will automatically create the required tables (`users`, `civilizations`, `custom_civilizations`) and seed the 59 civilizations on its first boot! No manual table setup is required.*
+
+### 3. Environment Configuration
+1. Navigate to the `backend/` directory.
+2. Create a new file named `.env` (you can copy `.env.example` as a template).
+3. Fill in the following credentials:
+   ```env
+   # PostgreSQL Connection URL
+   DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/civilization_mapper
+
+   # OpenAI Key (For the AI assistant chatbot)
+   OPENAI_API_KEY=sk-proj-...
+
+   # SMTP settings for sending password reset emails
+   GMAIL_SENDER=your-email@gmail.com
+   GMAIL_APP_PASSWORD=your-gmail-app-password
+   ```
+
+### 4. Running the Application
+#### Option A: Quick Start (Windows)
+Simply double-click the **`run_app.bat`** file in the root folder. This batch script will automatically:
+1. Verify/install missing Python packages from `requirements.txt`.
+2. Spin up the FastAPI backend on port `8080`.
+3. Open the application frontend directly in your default browser.
+
+#### Option B: Manual Startup (All Platforms)
+1. Open a terminal in the project root directory and navigate to `backend`:
+   ```bash
+   cd backend
+   ```
+2. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the FastAPI development server:
+   ```bash
+   uvicorn main:app --reload --port 8080
+   ```
+4. Access the web interface by visiting `http://localhost:8080` in your web browser.
